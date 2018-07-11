@@ -48,37 +48,46 @@ public class FileHandler {
 	
 	public String getMimetype() {
 		if (!initialized)
-			throw new IllegalStateException("File handler not populated");
+			throw new IllegalStateException();
 		return mimetype;
 	}
 	
 	public String getTitle() {
 		if (!initialized)
-			throw new IllegalStateException("File handler not populated");
+			throw new IllegalStateException();
 		return title;
 	}
 
 	public URI getDownloadURL() {
 		if (!initialized)
-			throw new IllegalStateException("File handler not populated");
+			throw new IllegalStateException();
 		return downloadURL;
 	}
 	
-	public void updateData() throws IOException {
+	public void updateData() throws IOException, HttpException {
 		HttpGet request = new HttpGet(dataURL);
 		CloseableHttpResponse response = client.execute(request);
-		try {
-			JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-			title = json.getString("title");
-			mimetype = json.getString("mimetype");
-			downloadURL = client.getURL(json.getString("downloadURI"));
-			initialized = true;
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode == 200) {
+			try {
+				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+				title = json.getString("title");
+				mimetype = json.getString("mimetype");
+				downloadURL = client.getURL(json.getString("downloadURI"));
+				initialized = true;
+			}
+			catch (JSONException e) {
+				throw new ServerError("Invalid JSON response", e);
+			}
+			finally {
+				response.close();
+			}
 		}
-		catch (JSONException e) {
-			throw new ServerError("Invalid JSON response", e);
+		else if (statusCode >= 400) {
+			throw client.getHttpException(response);
 		}
-		finally {
-			response.close();
+		else {
+			throw new ServerError("Invalid status code");
 		}
 	}
 	

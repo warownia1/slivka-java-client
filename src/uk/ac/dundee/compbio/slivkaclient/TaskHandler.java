@@ -87,56 +87,75 @@ public class TaskHandler {
 		return resultURL;
 	}
 	
-	public TaskStatus getStatus() throws IOException {
+	public TaskStatus getStatus() throws IOException, ServerError, HttpException {
 		HttpGet request = new HttpGet(statusURL);
 		CloseableHttpResponse response = client.execute(request);
+		int statusCode = response.getStatusLine().getStatusCode();
 		try {
-			if (response.getStatusLine().getStatusCode() == 200) {
+		if (statusCode == 200) {
+			try {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 				return new TaskStatus(
 						ExecutionStatus.fromName(json.getString("execution")),
 						json.getBoolean("ready")
 						);
 			}
-			else
-				return null;
+			catch (JSONException e) {
+				throw new ServerError("Invalid JSON response", e);
+			}
 		}
-		catch (JSONException e) {
-			throw new ServerError("Invalid JSON response", e);
+		else if (statusCode >= 400) {
+			throw client.getHttpException(response);
+		}
+		else {
+			throw new ServerError("Invalid status code");
+		}
 		}
 		finally {
 			response.close();
 		}
 	}
 	
-	public List<FileHandler> getResult() throws IOException {
-		List<FileHandler> files = new ArrayList<>();
+	public List<FileHandler> getResult() throws IOException, HttpException, ServerError {
 		HttpGet request = new HttpGet(resultURL);
 		CloseableHttpResponse response = client.execute(request);
+		int statusCode = response.getStatusLine().getStatusCode();
 		try {
-			JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-			JSONArray filesArray = json.getJSONArray("files");
-			for (int i = 0; i < filesArray.length(); ++i) {
-				JSONObject fileObject = filesArray.getJSONObject(i);
-				files.add(new FileHandler(
-						client,
-						fileObject.getString("id"),
-						fileObject.getString("title"),
-						fileObject.optString("mimetype", ""),
-						fileObject.getString("downloadURI")
-						));
+		if (statusCode == 200) {
+			List<FileHandler> files = new ArrayList<>();
+			try {
+				JSONObject json = new JSONObject(
+						EntityUtils.toString(response.getEntity()));
+				JSONArray filesArray = json.getJSONArray("files");
+				for (int i = 0; i < filesArray.length(); ++i) {
+					JSONObject fileObject = filesArray.getJSONObject(i);
+					files.add(new FileHandler(
+							client,
+							fileObject.getString("id"),
+							fileObject.getString("title"),
+							fileObject.optString("mimetype", ""),
+							fileObject.getString("downloadURI")
+							));
+				}
 			}
+			catch (JSONException e) {
+				throw new ServerError("Invalid JSON response", e);
+			}
+			return files;
 		}
-		catch (JSONException e) {
-			throw new ServerError("Invalid JSON response", e);
+		else if (statusCode >= 400) {
+			throw client.getHttpException(response);
+		}
+		else {
+			throw new ServerError("Invalid status code");
+		}
 		}
 		finally {
 			response.close();
 		}
-		return files;
 	}
 	
 	public String toString() {
-		return String.format("<Task %s>", id);
+		return String.format("Task %s", id);
 	}
 }

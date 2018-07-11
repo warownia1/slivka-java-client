@@ -3,6 +3,8 @@ import uk.ac.dundee.compbio.slivkaclient.Service;
 import uk.ac.dundee.compbio.slivkaclient.SlivkaClient;
 import uk.ac.dundee.compbio.slivkaclient.TaskHandler;
 import uk.ac.dundee.compbio.slivkaclient.form.Form;
+import uk.ac.dundee.compbio.slivkaclient.form.FormValidationException;
+import uk.ac.dundee.compbio.slivkaclient.form.ValidationException;
 
 public class Test {
 	public static void main(String args[]) {		
@@ -19,6 +21,7 @@ public class Test {
 			TaskHandler task = form
 					.insert("message", "Hello World!!!")
 					.insert("lunch", "chicken")
+					.insert("returnCode", 32)
 					.insert("wait", 3)
 					.insert("number", 2)
 					.insert("error", "Scary error message")
@@ -34,7 +37,13 @@ public class Test {
 				file.writeTo(System.out);
 				System.out.println("\n");
 			}
-		} catch (Exception e) {
+		} 
+		catch (FormValidationException e) {
+			for (ValidationException e1 : e.getErrors()) {
+				System.out.println(e1.toString());
+			}
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		

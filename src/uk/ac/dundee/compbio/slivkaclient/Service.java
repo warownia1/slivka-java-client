@@ -29,22 +29,33 @@ public class Service {
 		return name;
 	}
 	
-	public Form getForm() throws IOException, ServerError {
+	public Form getForm() throws IOException, ServerError, HttpException {
 		if (form == null) {
 			form = fetchForm();
 		}
 		return form;
 	}
 	
-	private Form fetchForm() throws IOException, ServerError {
+	private Form fetchForm() throws IOException, ServerError, HttpException {
 		HttpGet request = new HttpGet(formURI);
 		CloseableHttpResponse response = client.execute(request);
+		int statusCode = response.getStatusLine().getStatusCode();
 		try {
-			JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-			return FormFactory.buildForm(client, json);
+		if (statusCode == 200) {
+			try {
+				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+				return FormFactory.buildForm(client, json);
+			}
+			catch (JSONException e) {
+				throw new ServerError("Invalid JSON response", e);
+			}
 		}
-		catch (JSONException e) {
-			throw new ServerError("Invalid JSON response", e);
+		else if (statusCode >= 400) {
+			throw client.getHttpException(response);
+		}
+		else {
+			throw new ServerError("Invalid status code");
+		}
 		}
 		finally {
 			response.close();

@@ -13,4 +13,8 @@ public class ValidationException extends Exception {
 		this.code = code;
 		this.message = message;
 	}
+	
+	public String toString() {
+		return String.format("%s(%s): %s", field.getName(), code, message);
+	}
 }
