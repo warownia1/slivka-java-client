@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
@@ -25,13 +26,13 @@ import uk.ac.dundee.compbio.slivkaclient.ServerError;
 import uk.ac.dundee.compbio.slivkaclient.SlivkaClient;
 import uk.ac.dundee.compbio.slivkaclient.TaskHandler;
 
+
 public class Form {
 
 	private SlivkaClient.HttpClient client;
 	public final String name;
 	private final URI submitURI;
-	private final List<FormField> fields;
-	private final HashSet<String> fieldNames;
+	private final HashMap<String, FormField> fields;
 	private final boolean template;
 	private HashMap<String, Object> values = new HashMap<>();
 	
@@ -40,10 +41,10 @@ public class Form {
 		this.client = httpClient;
 		this.name = name;
 		this.submitURI = httpClient.getURL(submitPath);
-		this.fields = Collections.unmodifiableList(fields);
-		this.fieldNames = new HashSet<String>(this.fields.size());
-		for (FormField field : this.fields)
-			fieldNames.add(field.getName());
+		this.fields = new HashMap<>(fields.size());
+		for (FormField field : fields) {
+			this.fields.put(field.getName(), field);
+		}
 		this.template = true;
 	}
 	
@@ -52,25 +53,28 @@ public class Form {
 		name = base.name;
 		submitURI = base.submitURI;
 		fields = base.fields;
-		fieldNames = base.fieldNames;
 		template = false;
 	}
 	
-	public List<FormField> getFields() {
-		return fields;
+	public Form create() {
+		return new Form(this);
 	}
 	
-	public HashSet<String> getFieldNames() {
-		return fieldNames;
+	public List<FormField> getFields() {
+		return new ArrayList<>(fields.values());
+	}
+	
+	public Set<String> getFieldNames() {
+		return new HashSet<>(fields.keySet());
 	}
 	
 	public FormField getField(String name) {
-		for (FormField field : getFields()) {
-			if (field.getName().equals(name)) {
-				return field;
-			}
+		if (fields.containsKey(name)) {
+			return fields.get(name);
 		}
-		throw new IllegalArgumentException("No field named \"" + name + "\"");
+		else {
+			throw new IllegalArgumentException("Invalid field \"" + name + "\"");
+		}
 	}
 
 	public Form insert(String name, Object value) {
@@ -82,9 +86,11 @@ public class Form {
 	}
 	
 	public Form insert(Map<String, Object> many) {
-		for (String name : many.keySet())
-			if (!getFieldNames().contains(name))
+		for (String name : many.keySet()) {
+			if (!getFieldNames().contains(name)) {
 				throw new IllegalArgumentException("Invalid field \"" + name + "\"");
+			}
+		}
 		Form form = template ? new Form(this) : this;
 		form.values.putAll(many);
 		return form;
@@ -107,7 +113,8 @@ public class Form {
 		return cleanedValues;
 	}
 	
-	public TaskHandler submit() throws FormValidationException, IOException, HttpException, ServerError {
+	public TaskHandler submit()
+			throws FormValidationException, IOException, HttpException, ServerError {
 		Map<String, String> cleanedValues = validate();
 		List<NameValuePair> formParams = new ArrayList<>();
 		for (String name : cleanedValues.keySet()) {

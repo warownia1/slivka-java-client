@@ -15,7 +15,7 @@ public class FileHandler {
 	private final SlivkaClient.HttpClient client;
 	private final String fileID;
 	private String title;
-	private String mimetype;
+	private String mimeType;
 	private URI downloadURL;
 	private final URI dataURL;
 	private boolean initialized;
@@ -28,11 +28,11 @@ public class FileHandler {
 	}
 	
 	FileHandler(SlivkaClient.HttpClient client, String fileID, 
-			String title, String mimetype, String downloadPath) {
+			String title, String mimeType, String downloadPath) {
 		this.client = client;
 		this.fileID = fileID;
 		this.title = title;
-		this.mimetype = mimetype;
+		this.mimeType = mimeType;
 		this.downloadURL = client.getURL(downloadPath);
 		this.dataURL = client.getURL("file/" + fileID);
 		initialized = true;
@@ -46,10 +46,10 @@ public class FileHandler {
 		return initialized;
 	}
 	
-	public String getMimetype() {
+	public String getMimeType() {
 		if (!initialized)
 			throw new IllegalStateException();
-		return mimetype;
+		return mimeType;
 	}
 	
 	public String getTitle() {
@@ -72,7 +72,7 @@ public class FileHandler {
 			try {
 				JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
 				title = json.getString("title");
-				mimetype = json.getString("mimetype");
+				mimeType = json.getString("mimetype");
 				downloadURL = client.getURL(json.getString("downloadURI"));
 				initialized = true;
 			}

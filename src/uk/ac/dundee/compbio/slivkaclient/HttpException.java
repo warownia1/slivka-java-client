@@ -36,4 +36,8 @@ public class HttpException extends Exception {
 	public JSONObject getJSONContent() {
 		return content;
 	}
+	
+	public String toString() {
+		return String.format("%d %s", getStatusCode(), getReason());
+	}
 }
