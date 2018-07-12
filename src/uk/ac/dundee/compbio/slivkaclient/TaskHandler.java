@@ -12,8 +12,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Representation of the submitted task.
+ * It provides the access to the task status and result.
+ *  
+ * @author Mateusz Warowny
+ *
+ */
 public class TaskHandler {
-	
+
 	public static enum ExecutionStatus {
 		PENDING("pending"),
 		QUEUED("queued"),
@@ -28,7 +35,7 @@ public class TaskHandler {
 			this.name = name;
 		}
 		
-		public static ExecutionStatus fromName(String name) {
+		static ExecutionStatus fromName(String name) {
 			for (ExecutionStatus status : ExecutionStatus.values()) {
 				if (name.equals(status.name)) {
 					return status;
@@ -49,14 +56,29 @@ public class TaskHandler {
 			this.ready = ready;
 		}
 		
+		/**
+		 * Gets the current job status.
+		 * @return Job status.
+		 */
 		public ExecutionStatus getStatus() {
 			return status;
 		}
 		
+		/**
+		 * Indicated whether the job finished running.
+		 * Ready job does not mean it finished successfully.
+		 * For more information on job status use {@link #getStatus()}.
+		 * 
+		 * @return true if the job has terminated, false otherwise.
+		 */
 		public boolean isReady() {
 			return ready;
 		}
 		
+		/**
+		 * Gets the URL where the job result can be retrieved.
+		 * @return URL for job result retrieval.
+		 */
 		public URI getResultURL() {
 			return resultURL;
 		}
@@ -75,18 +97,39 @@ public class TaskHandler {
 		this.resultURL = client.getURL("/task/" + taskID + "/result");
 	}
 	
+	/**
+	 * Gets job identifier assigned on form submission.
+	 * @return Job identifier.
+	 */
 	public String getTaskID() {
 		return id;
 	}
 	
+	/**
+	 * Gets URL where the job status can be checked.
+	 * @return Job status check URL.
+	 */
 	public URI getStatusURL() {
 		return statusURL;
 	}
 	
+	/**
+	 * Gets URL where the job result can be retrieved.
+	 * @return Job result retrieval URL.
+	 */
 	public URI getResultURL() {
 		return resultURL;
 	}
 	
+	/**
+	 * Gets the current job status.
+	 * Asks the server to return the current status of the submitted job.
+	 * 
+	 * @return Current job status.
+	 * @throws IOException If an error occurs during the connection to the server.
+	 * @throws HttpException If the server responds with and error status code.
+	 * @throws ServerError If the server response is invalid.
+	 */
 	public TaskStatus getStatus() throws IOException, ServerError, HttpException {
 		HttpGet request = new HttpGet(statusURL);
 		CloseableHttpResponse response = client.execute(request);
@@ -116,6 +159,16 @@ public class TaskHandler {
 		}
 	}
 	
+	/**
+	 * Gets all currently available results of the job.
+	 * Fetches all the result files associated with the job and wraps them
+	 * into the file handlers.
+	 * 
+	 * @return Result files produced by this job.
+	 * @throws IOException If an error occurs during the connection to the server.
+	 * @throws HttpException If the server responds with and error status code.
+	 * @throws ServerError If the server response is invalid.
+	 */
 	public List<FileHandler> getResult() throws IOException, HttpException, ServerError {
 		HttpGet request = new HttpGet(resultURL);
 		CloseableHttpResponse response = client.execute(request);

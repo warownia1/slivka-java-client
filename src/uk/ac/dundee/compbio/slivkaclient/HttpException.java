@@ -7,6 +7,12 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Exception thrown when the server responds with an error code.
+ * 
+ * @author Mateusz Warowny
+ *
+ */
 @SuppressWarnings("serial")
 public class HttpException extends Exception {
 
@@ -25,14 +31,26 @@ public class HttpException extends Exception {
 		}
 	}
 	
+	/**
+	 * Gets http status code of the error.
+	 * @return Http status code
+	 */
 	public int getStatusCode() {
 		return statusCode;
 	}
 	
+	/**
+	 * Gets http reason phrase
+	 * @return
+	 */
 	public String getReason() {
 		return reason;
 	}
 	
+	/***
+	 * Gets JSON object built from the response content.
+	 * @return response content as JSON
+	 */
 	public JSONObject getJSONContent() {
 		return content;
 	}

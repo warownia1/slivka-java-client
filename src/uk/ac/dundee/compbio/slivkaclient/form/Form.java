@@ -3,7 +3,6 @@ package uk.ac.dundee.compbio.slivkaclient.form;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,18 +55,42 @@ public class Form {
 		template = false;
 	}
 	
+	/**
+	 * Creates a fillable form from the template. 
+	 * 
+	 * This method allows to create the fillable form instance from the template form manually.
+	 * The fillable form is also created when {@link #insert(String, Object)} or {@link #insert(Map)} 
+	 * is called for the first time on the template.
+	 * 
+	 * @return Empty form suitable for data insertion
+	 */
 	public Form create() {
 		return new Form(this);
 	}
 	
+	/**
+	 * Gets the list of form fields.
+	 * @return List of form fields.
+	 */
 	public List<FormField> getFields() {
 		return new ArrayList<>(fields.values());
 	}
 	
+	/**
+	 * Gets the set of field names.
+	 * @return Set of field names.
+	 */
 	public Set<String> getFieldNames() {
 		return new HashSet<>(fields.keySet());
 	}
 	
+	/**
+	 * Gets the field having the specified name.
+	 * 
+	 * @param name Field name
+	 * @return Field
+	 * @throws IllegalArgumentException If the name doesn't match any field.
+	 */
 	public FormField getField(String name) {
 		if (fields.containsKey(name)) {
 			return fields.get(name);
@@ -77,6 +100,19 @@ public class Form {
 		}
 	}
 
+	/**
+	 * Inserts a single value to the form.
+	 * 
+	 * This method is used to populate the form with values. If the form is a template
+	 * a new fillable form instance is created before inserting the data to it.
+	 * Returns the form instance allowing chaining.
+	 * 
+	 * @param name Field name
+	 * @param value Inserted value
+	 * @return Fillable form instance
+	 * @throws IllegalArgumentException If the name doesn't match any field.
+	 * @see #create()
+	 */
 	public Form insert(String name, Object value) {
 		if (!getFieldNames().contains(name))
 			throw new IllegalArgumentException("Invalid field \"" + name + "\"");
@@ -85,14 +121,29 @@ public class Form {
 		return form;
 	}
 	
-	public Form insert(Map<String, Object> many) {
-		for (String name : many.keySet()) {
-			if (!getFieldNames().contains(name)) {
+	/**
+	 * Inserts multiple values to the form.
+	 * 
+	 * This method allows to populate multiple form fields at once. Each key in the map
+	 * corresponds to a form field name and maps it to the value inserted to that field.
+	 * If the form is a template a new fillable form instance is created before inserting data into it.
+	 * Return the fillable form instance allowing chaining.
+	 * 
+	 * @param values A mapping of the field names to values
+	 * @return Fillable form instance
+	 * @throws IllegalArgumentException If the name doesn't match any field.
+	 * @see #insert(String, Object)
+	 * @see #create()
+	 */
+	public Form insert(Map<String, Object> values) {
+		Set<String> fieldNames = getFieldNames();
+		for (String name : values.keySet()) {
+			if (!fieldNames.contains(name)) {
 				throw new IllegalArgumentException("Invalid field \"" + name + "\"");
 			}
 		}
 		Form form = template ? new Form(this) : this;
-		form.values.putAll(many);
+		form.values.putAll(values);
 		return form;
 	}
 
@@ -113,6 +164,22 @@ public class Form {
 		return cleanedValues;
 	}
 	
+	/**
+	 * Validates and submits the form.
+	 * 
+	 * Validates each value against the corresponding field and collects ValidationException
+	 * raised during each field validation. If the validation passes successfully, submits
+	 * the job request to the server and returns a handler to the created task.
+	 * Otherwise, throws a FormValidationException enclosing all errors in the fields.
+	 * 
+	 * @return Task handler for the submitted job.
+	 * @throws FormValidationException If any of the form fields is not valid.
+	 * @throws IOException If an error occurs during the connection to the server.
+	 * @throws HttpException If the server responds with and error status code.
+	 * @throws ServerError If the server response is invalid.
+	 * @see FormField#validate(Object)
+	 * @see TaskHandler
+	 */
 	public TaskHandler submit()
 			throws FormValidationException, IOException, HttpException, ServerError {
 		Map<String, String> cleanedValues = validate();

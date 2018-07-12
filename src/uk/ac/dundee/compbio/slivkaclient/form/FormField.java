@@ -12,21 +12,61 @@ public abstract class FormField {
 		this.required = required;
 	}
 
+	/**
+	 * Gets the type of the field.
+	 * 
+	 * The type can be used to perform type casting to more specialised
+	 * field classes. The field types and the corresponding classes are:
+	 * {@link FieldType#INTEGER}: {@link IntegerField},
+	 * {@link FieldType#DECIMAL}: {@link DecimalField},
+	 * {@link FieldType#TEXT}: {@link TextField},
+	 * {@link FieldType#BOOLEAN}: {@link BooleanField},
+	 * {@link FieldType#CHOICE}: {@link ChoiceField},
+	 * {@link FieldType#FILE}: {@link FileField}
+	 * 
+	 * @return Field type
+	 * @see FieldType
+	 * @see IntegerField
+	 * @see DecinalField
+	 * @see TextField
+	 * @see BooleanField
+	 * @see ChoiceField
+	 * @see FileField
+	 */
 	public final FieldType getType() {
 		return type;
 	}
 	
+	/**
+	 * Gets the name of the field.
+	 * @return The name of the field.
+	 */
 	public final String getName() {
 		return name;
 	}
 	
+	/**
+	 * Indicates whether the field is required.
+	 * @return true if field is required; false if not.
+	 */
 	public final boolean isRequired() {
 		return required;
 	}
 
+	/**
+	 * Tests if the value is valid for that field.
+	 * 
+	 * FormField subclasses override this method to provide specialised value checks.
+	 * Values passed to the form are checked by each field's validate method.
+	 * 
+	 * @param value Value to be compared against field constraints
+	 * @return String to be submitted
+	 * @throws ValidationException If the value violates any of the field constraints.
+	 * @see Form#submit()
+	 */
 	public abstract String validate(Object value) throws ValidationException;
 	
-	protected ValidationException fail(String code, String message) {
+	ValidationException fail(String code, String message) {
 		return new ValidationException(this, code, message);
 	}
 	
