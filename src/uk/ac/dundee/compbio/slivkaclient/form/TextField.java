@@ -6,9 +6,9 @@ public class TextField extends FormField {
 	public final Integer maxLength;
 	public final Integer minLength;
 	
-	TextField(String name, boolean required,
-			String initial, Integer minLength, Integer maxLength) {
-		super(FieldType.TEXT, name, required);
+	TextField(String name, String label, String description,
+			boolean required, String initial, Integer minLength, Integer maxLength) {
+		super(FieldType.TEXT, name, label, description, required);
 		this.initial = initial;
 		this.minLength = minLength;
 		this.maxLength = maxLength;

@@ -4,8 +4,9 @@ public class BooleanField extends FormField {
 
 	private final Boolean initial;
 	
-	BooleanField(String name, boolean required, Boolean initial) {
-		super(FieldType.BOOLEAN, name, required);
+	BooleanField(String name, String label, String description, 
+			boolean required, Boolean initial) {
+		super(FieldType.BOOLEAN, name, label, description, required);
 		this.initial = initial;
 	}
 	
@@ -15,18 +16,22 @@ public class BooleanField extends FormField {
 
 	@Override
 	public String validate(Object value) throws ValidationException {
-		if (value == null)
+		if (value == null) {
 			value = initial;
-		if (value == null)
+		}
+		if (value == null) {
 			if (required)
 				throw fail("required", "Field is required");
 			else
 				return null;
-		if (!(value instanceof Boolean))
+		}
+		if (!(value instanceof Boolean)) {
 			throw fail("type", "Not a valid Boolean");
+		}
 		Boolean val = (Boolean) value;
-		if (required && !val)
+		if (required && !val) {
 			throw fail("required", "Field is required");
+		}
 		return val ? "true" : "false";
 	}
 	

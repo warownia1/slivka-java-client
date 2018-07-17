@@ -8,9 +8,9 @@ public class ChoiceField extends FormField {
 	private final String initial;
 	private final Collection<String> choices;
 	
-	ChoiceField(String name, boolean required, String initial, 
-			Collection<String> choices) {
-		super(FieldType.CHOICE, name, required);
+	ChoiceField(String name, String label, String description,
+			boolean required, String initial, Collection<String> choices) {
+		super(FieldType.CHOICE, name, label, description, required);
 		this.initial = initial;
 		this.choices = Collections.unmodifiableCollection(choices);
 	}

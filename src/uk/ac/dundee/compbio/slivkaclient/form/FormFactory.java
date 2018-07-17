@@ -47,6 +47,8 @@ public class FormFactory {
 		case FILE:
 			field = new FileField(
 					object.getString("name"),
+					object.getString("label"),
+					object.optString("description", ""),
 					object.optBoolean("required", false)
 					);
 			break;
@@ -67,6 +69,8 @@ public class FormFactory {
 		}
 		return new IntegerField(
 				object.getString("name"),
+				object.getString("label"),
+				object.optString("description", ""),
 				object.optBoolean("required", false),
 				object.isNull("default") ? null : object.getInt("default"),
 				min, max
@@ -92,6 +96,8 @@ public class FormFactory {
 		}
 		return new DecimalField(
 				object.getString("name"),
+				object.getString("label"),
+				object.optString("description", ""),
 				object.optBoolean("required", false),
 				object.isNull("default") ? null : object.getDouble("default"),
 				min, max, minExclusive, maxExclusive
@@ -111,6 +117,8 @@ public class FormFactory {
 		}
 		return new TextField(
 				object.getString("name"),
+				object.getString("label"),
+				object.optString("description", ""),
 				object.optBoolean("required", false),
 				object.isNull("default") ? null : object.getString("default"),
 				minLength, maxLength
@@ -120,6 +128,8 @@ public class FormFactory {
 	private static FormField buildBooleanField(JSONObject object) {
 		return new BooleanField(
 				object.getString("name"),
+				object.getString("label"),
+				object.optString("description", ""),
 				object.optBoolean("required", false),
 				object.isNull("default") ? null : object.getBoolean("default")
 				);
@@ -139,6 +149,8 @@ public class FormFactory {
 		}
 		return new ChoiceField(
 				object.getString("name"),
+				object.getString("label"),
+				object.optString("description", ""),
 				object.optBoolean("required", false),
 				object.optString("default", null),
 				choices

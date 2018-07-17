@@ -5,11 +5,16 @@ public abstract class FormField {
 	public final FieldType type;
 	public final boolean required;
 	private final String name;
+	private final String label;
+	private final String description;
 	
-	FormField(FieldType type, String name, boolean required) {
+	FormField(FieldType type, String name, String label,
+			String description, boolean required) {
 		this.type = type;
 		this.name = name;
 		this.required = required;
+		this.label = label;
+		this.description = description;
 	}
 
 	/**
@@ -53,6 +58,22 @@ public abstract class FormField {
 		return required;
 	}
 
+	/**
+	 * Gets the human readable field label.
+	 * @return Field label.
+	 */
+	public final String getLabel() {
+		return label;
+	}
+	
+	/**
+	 * Gets the detailed description of the field.
+	 * @return Description of the field.
+	 */
+	public final String getDescription() {
+		return description;
+	}
+	
 	/**
 	 * Tests if the value is valid for that field.
 	 * 

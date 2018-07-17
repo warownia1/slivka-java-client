@@ -6,9 +6,9 @@ public class IntegerField extends FormField {
 	public final Integer max;
 	public final Integer min;
 	
-	IntegerField(String name, boolean required, 
-			Integer initial, Integer min, Integer max) {
-		super(FieldType.INTEGER, name, required);
+	IntegerField(String name, String label, String description, 
+			boolean required, Integer initial, Integer min, Integer max) {
+		super(FieldType.INTEGER, name, label, description, required);
 		this.initial = initial;
 		this.min = min;
 		this.max = max;

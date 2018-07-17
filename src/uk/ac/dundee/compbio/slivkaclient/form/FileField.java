@@ -4,8 +4,8 @@ import uk.ac.dundee.compbio.slivkaclient.FileHandler;
 
 public class FileField extends FormField {
 
-	FileField(String name, boolean required) {
-		super(FieldType.FILE, name, required);
+	FileField(String name, String label, String description, boolean required) {
+		super(FieldType.FILE, name, label, description, required);
 	}
 
 	@Override

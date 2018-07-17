@@ -8,9 +8,10 @@ public class DecimalField extends FormField {
 	private final boolean maxExc;
 	private final Double initial;
 
-	DecimalField(String name, boolean required, Double initial,
+	DecimalField(String name, String label, String description,
+			boolean required, Double initial,
 			Double min, Double max, boolean minExc, boolean maxExc) {
-		super(FieldType.DECIMAL, name, required);
+		super(FieldType.DECIMAL, name, label, description, required);
 		this.initial = initial;
 		this.min = min;
 		this.max = max;
