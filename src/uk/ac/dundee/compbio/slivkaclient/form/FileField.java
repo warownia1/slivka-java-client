@@ -20,5 +20,10 @@ public class FileField extends FormField {
 		FileHandler wrapper = (FileHandler) value;
 		return wrapper.getID();
 	}
+
+	@Override
+	public Object getDefault() {
+		return null;
+	}
 	
 }

@@ -57,6 +57,8 @@ public abstract class FormField {
 	public final boolean isRequired() {
 		return required;
 	}
+	
+	public abstract Object getDefault();
 
 	/**
 	 * Gets the human readable field label.

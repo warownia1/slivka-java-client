@@ -31,6 +31,11 @@ public class IntegerField extends FormField {
 		if (min != null && val < min)
 			throw fail("min", "Value is too small");
 		return val.toString();
+	}
+
+	@Override
+	public Integer getDefault() {
+		return initial;
 	}	
 	
 }
