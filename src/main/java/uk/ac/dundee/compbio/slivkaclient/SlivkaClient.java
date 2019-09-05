@@ -117,4 +117,47 @@ public class SlivkaClient {
       response.close();
     }
   }
+
+  public JobState getJobState(String uuid) throws IOException {
+    URI url = buildURL(String.format("tasks/%s", uuid));
+    CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
+    int statusCode = response.getStatusLine().getStatusCode();
+    try {
+      if (statusCode == 200) {
+        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+        return JobState.valueOf(json.getString("status").toUpperCase());
+      } else {
+        throw new HttpResponseException(statusCode, "Invalid server response");
+      }
+    } finally {
+      response.close();
+    }
+  }
+
+  public List<RemoteFile> getJobResults(String uuid) throws IOException {
+    URI url = buildURL(String.format("tasks/%s/files", uuid));
+    CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
+    int statusCode = response.getStatusLine().getStatusCode();
+    try {
+      if (statusCode == 200) {
+        List<RemoteFile> files = new ArrayList<>();
+        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+        for (Object obj : json.getJSONArray("files")) {
+          JSONObject fileJSON = (JSONObject) obj;
+          files.add(new RemoteFile(
+              this,
+              fileJSON.getString("uuid"),
+              fileJSON.getString("title"),
+              fileJSON.getString("mimetype"),
+              fileJSON.getString("contentURI")
+          ));
+        }
+        return files;
+      } else {
+        throw new HttpResponseException(statusCode, "Invalid server response");
+      }
+    } finally {
+      response.close();
+    }
+  }
 }

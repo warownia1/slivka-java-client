@@ -84,7 +84,7 @@ public class Task {
     try {
       if (statusCode == 200) {
         JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-        status.code = StatusCode.forName(json.getString("status"));
+        status.code = StatusCode.forName(json.getString("status").toLowerCase());
         status.ready = json.getBoolean("ready");
         filesPath = json.getString("filesURI");
       } else {

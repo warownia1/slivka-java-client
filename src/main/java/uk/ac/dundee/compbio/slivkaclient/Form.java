@@ -71,7 +71,7 @@ public class Form {
     return cleanedValues;
   }
 
-  public Task submit() throws FormValidationException, IOException {
+  public String submit() throws FormValidationException, IOException {
     Map<String, String> cleaned = validate();
     List<NameValuePair> formParams = new ArrayList<>();
     for (String name : cleaned.keySet()) {
@@ -87,7 +87,7 @@ public class Form {
     try {
       if (statusCode == 202) {
         JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-        return new Task(client, json.getString("uuid"), json.getString("URI"));
+        return json.getString("uuid");
       } else if (statusCode == 420) {
         JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
         List<ValidationException> errors = new ArrayList<>();
