@@ -13,13 +13,4 @@ public enum FieldType {
   FieldType(String name) {
     this.name = name;
   }
-
-  public static FieldType forName(String name) {
-    for (FieldType type : FieldType.values()) {
-      if (name.equals(type.name)) {
-        return type;
-      }
-    }
-    throw new IllegalArgumentException("Invalid field type \"" + name + "\"");
-  }
 }

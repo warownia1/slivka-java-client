@@ -8,28 +8,42 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 
-public class Service {
+public class SlivkaService {
   private final SlivkaClient client;
-  private final String name;
-  private final String path;
-  private Form form = null;
+  public final String name;
+  public final String path;
+  public final String label;
+  public final List<String> classifiers;
+  private SlivkaForm form = null;
 
-  Service(SlivkaClient client, String name, String path) {
+  SlivkaService(SlivkaClient client, String name, String label, String path, List<String> classifiers) {
     this.client = client;
     this.name = name;
+    this.label = label;
     this.path = path;
+    this.classifiers = Collections.unmodifiableList(classifiers);
   }
 
   public String getName() {
     return name;
   }
+  
+  public String getLabel() {
+    return label;
+  }
 
   public URI getURL() {
     return client.buildURL(path);
   }
+  
+  public List<String> getClassifiers() {
+    return classifiers;
+  }
 
-  public Form getForm() throws IOException {
+  public SlivkaForm getForm() throws IOException {
     if (form == null) {
       CloseableHttpResponse response = client.httpClient.execute(new HttpGet(getURL()));
       int statusCode = response.getStatusLine().getStatusCode();
@@ -40,6 +54,6 @@ public class Service {
         throw new HttpResponseException(statusCode, "Invalid status code");
       }
     }
-    return new Form(form);
+    return new SlivkaForm(form);
   }
 }

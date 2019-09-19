@@ -15,14 +15,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
-public class Form {
+public class SlivkaForm {
   private final SlivkaClient client;
   private final String name;
   private final Map<String, FormField> fields;
   private final String path;
   private final HashMap<String, Object> values;
 
-  Form(SlivkaClient client, String name, Map<String, FormField> fields, String path) {
+  SlivkaForm(SlivkaClient client, String name, Map<String, FormField> fields, String path) {
     this.client = client;
     this.name = name;
     this.fields = Collections.unmodifiableMap(fields);
@@ -31,7 +31,7 @@ public class Form {
   }
 
   @SuppressWarnings("CopyConstructorMissesField")
-  Form(Form copyFrom) {
+  SlivkaForm(SlivkaForm copyFrom) {
     this(copyFrom.client, copyFrom.name, copyFrom.fields, copyFrom.path);
   }
 
@@ -112,17 +112,17 @@ public class Form {
 
 
 class JSONFormFactory {
-  static Form getForm(SlivkaClient client, JSONObject json) {
+  static SlivkaForm getForm(SlivkaClient client, JSONObject json) {
     HashMap<String, FormField> fields = new HashMap<>();
     for (Object obj : json.getJSONArray("fields")) {
       JSONObject fieldJSON = (JSONObject) obj;
       fields.put(fieldJSON.getString("name"), getField(fieldJSON));
     }
-    return new Form(client, json.getString("name"), fields, json.getString("URI"));
+    return new SlivkaForm(client, json.getString("name"), fields, json.getString("URI"));
   }
 
   private static FormField getField(JSONObject json) {
-    FieldType type = FieldType.forName(json.getString("type"));
+    FieldType type = FieldType.valueOf(json.getString("type").toUpperCase());
     switch (type) {
       case INTEGER:
         return new IntegerField(
@@ -130,9 +130,9 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.getInt("default"),
-            json.getInt("min"),
-            json.getInt("max")
+            json.has("default") ? json.getInt("default") : null,
+            json.has("min") ? json.getInt("min") : null,
+            json.has("max") ? json.getInt("max") : null
         );
       case DECIMAL:
         return new DecimalField(
@@ -140,11 +140,11 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.getDouble("default"),
-            json.getDouble("min"),
-            json.getDouble("max"),
-            json.getBoolean("minExclusive"),
-            json.getBoolean("maxExclusive")
+            json.has("default") ? json.getDouble("default") : null,
+            json.has("min") ? json.getDouble("min") : null,
+            json.has("max") ? json.getDouble("max") : null,
+            json.optBoolean("minExclusive", false),
+            json.optBoolean("maxExclusive", false)
         );
       case BOOLEAN:
         return new BooleanField(
@@ -152,7 +152,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.getBoolean("default")
+            json.has("default") ? json.getBoolean("default") : null
         );
       case TEXT:
         return new TextField(
@@ -160,9 +160,9 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.getString("default"),
-            json.getInt("minLength"),
-            json.getInt("maxLength")
+            json.has("default") ? json.getString("default") : null,
+            json.has("minLength") ? json.getInt("minLength") : null,
+            json.has("maxLength") ? json.getInt("maxLength") : null
         );
       case FILE:
         return new FileField(
@@ -182,7 +182,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.getString("default"),
+            json.has("default") ? json.getString("default") : null,
             Arrays.asList(choices)
         );
     }

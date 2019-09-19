@@ -5,7 +5,7 @@ import java.util.Collection;
 
 /**
  * Class representing the exception thrown during form validation.
- * It is thrown by {@link Form#submit()} if any of the fields throws a ValidationException.
+ * It is thrown by {@link SlivkaForm#submit()} if any of the fields throws a ValidationException.
  * THe collected ValidationException are passed to its constructor.
  *
  * @author mmwarowny

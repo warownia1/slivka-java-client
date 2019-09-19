@@ -44,19 +44,27 @@ public class SlivkaClient {
     }
   }
 
-  public List<Service> getServices() throws IOException {
+  public List<SlivkaService> getServices() throws IOException {
     CloseableHttpResponse response = httpClient.execute(new HttpGet(buildURL("services")));
     int statusCode = response.getStatusLine().getStatusCode();
     try {
       if (statusCode == 200) {
-        List<Service> services = new ArrayList<>();
+        ArrayList<SlivkaService> services = new ArrayList<>();
         JSONObject jsonData = new JSONObject(EntityUtils.toString(response.getEntity()));
         JSONArray servicesJson = jsonData.getJSONArray("services");
         for (int i = 0; i < servicesJson.length(); ++i) {
-          services.add(new Service(
+          JSONObject section = servicesJson.getJSONObject(i);
+          JSONArray classifiersJsonArray = section.getJSONArray("classifiers");
+          ArrayList<String> classifiers = new ArrayList<>(classifiersJsonArray.length());
+          for (Object obj: classifiersJsonArray) {
+            classifiers.add((String) obj);
+          }
+          services.add(new SlivkaService(
               this,
-              servicesJson.getJSONObject(i).getString("name"),
-              servicesJson.getJSONObject(i).getString("URI")
+              section.getString("name"),
+              section.getString("label"),
+              section.getString("URI"),
+              classifiers
           ));
         }
         return services;
@@ -68,8 +76,8 @@ public class SlivkaClient {
     }
   }
 
-  public Service getService(String name) throws IOException {
-    for (Service service : getServices()) {
+  public SlivkaService getService(String name) throws IOException {
+    for (SlivkaService service : getServices()) {
       if (name.equals(service.getName())) {
         return service;
       }
@@ -77,20 +85,20 @@ public class SlivkaClient {
     return null;
   }
 
-  public RemoteFile uploadFile(File input, ContentType mimeType) throws IOException {
+  public RemoteFile uploadFile(File input, String mimeType) throws IOException {
     return uploadFile(input, input.getName(), mimeType);
   }
 
-  public RemoteFile uploadFile(File input, String title, ContentType mimeType) throws IOException {
+  public RemoteFile uploadFile(File input, String title, String mimeType) throws IOException {
     HttpEntity entity = MultipartEntityBuilder.create()
-        .addBinaryBody("file", input, mimeType, title)
+        .addBinaryBody("file", input, ContentType.create(mimeType), title)
         .build();
     return postFileEntity(new BufferedHttpEntity(entity));
   }
 
-  public RemoteFile uploadFile(InputStream input, String title, ContentType mimeType) throws IOException {
+  public RemoteFile uploadFile(InputStream input, String title, String mimeType) throws IOException {
     HttpEntity entity = MultipartEntityBuilder.create()
-        .addBinaryBody("file", input, mimeType, title)
+        .addBinaryBody("file", input, ContentType.create(mimeType), title)
         .build();
     return postFileEntity(new BufferedHttpEntity(entity));
   }
