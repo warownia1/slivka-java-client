@@ -37,6 +37,11 @@ public class IntegerField extends FormField {
   }
 
   @Override
+  public Integer valueOf(String value) {
+    return value != null ? Integer.valueOf(value) : null;
+  }
+  
+  @Override
   public Integer getDefault() {
     return initial;
   }

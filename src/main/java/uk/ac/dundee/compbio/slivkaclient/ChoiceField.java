@@ -44,4 +44,8 @@ public class ChoiceField extends FormField {
     return value.toString();
   }
 
+  @Override
+  public String valueOf(String value) {
+    return value;
+  }
 }

@@ -33,7 +33,12 @@ public class BooleanField extends FormField {
     if (required && !val) {
       throw fail("required", "Field is required");
     }
-    return val ? "true" : "false";
+    return val.toString();
+  }
+  
+  @Override
+  public Boolean valueOf(String value) {
+    return Boolean.valueOf(value);
   }
 
 }

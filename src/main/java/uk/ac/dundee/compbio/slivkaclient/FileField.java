@@ -25,4 +25,7 @@ public class FileField extends FormField {
     return null;
   }
 
+  public Object valueOf(String value) {
+    throw new RuntimeException("Cannot create file field value form string");
+  }
 }

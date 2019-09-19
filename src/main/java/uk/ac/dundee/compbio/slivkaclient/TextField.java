@@ -35,6 +35,11 @@ public class TextField extends FormField {
       throw fail("max length", "String is too long");
     return val;
   }
+  
+  @Override
+  public String valueOf(String value) {
+    return value;
+  }
 
   @Override
   public String getDefault() {

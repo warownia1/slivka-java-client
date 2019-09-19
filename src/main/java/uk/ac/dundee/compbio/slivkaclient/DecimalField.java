@@ -67,4 +67,8 @@ public class DecimalField extends FormField {
     return val.toString();
   }
 
+  @Override
+  public Double valueOf(String value) {
+    return value != null ? Double.valueOf(value) : null;
+  }
 }

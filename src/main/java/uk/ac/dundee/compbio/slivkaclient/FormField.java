@@ -92,6 +92,8 @@ public abstract class FormField {
    * @throws ValidationException If the value violates any of the field constraints.
    */
   public abstract String validate(Object value) throws ValidationException;
+  
+  public abstract Object valueOf(String value);
 
   protected ValidationException fail(String code, String message) {
     return new ValidationException(this, code, message);
