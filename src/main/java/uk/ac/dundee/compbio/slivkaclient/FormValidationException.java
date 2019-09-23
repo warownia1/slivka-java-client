@@ -12,6 +12,8 @@ import java.util.Collection;
  * @see ValidationException
  */
 public class FormValidationException extends Exception {
+
+  private static final long serialVersionUID = -4704755112138413016L;
   private Collection<ValidationException> errors;
 
   FormValidationException(Collection<ValidationException> errors) {

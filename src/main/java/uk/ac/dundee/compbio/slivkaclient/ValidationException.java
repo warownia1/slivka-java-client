@@ -9,6 +9,7 @@ package uk.ac.dundee.compbio.slivkaclient;
  */
 public class ValidationException extends Exception {
 
+  private static final long serialVersionUID = -8887478266840943090L;
   private final String code;
   private final String message;
   private final FormField field;
