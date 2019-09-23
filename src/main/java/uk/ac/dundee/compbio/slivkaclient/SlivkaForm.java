@@ -30,7 +30,6 @@ public class SlivkaForm {
     this.values = new HashMap<>();
   }
 
-  @SuppressWarnings("CopyConstructorMissesField")
   SlivkaForm(SlivkaForm copyFrom) {
     this(copyFrom.client, copyFrom.name, copyFrom.fields, copyFrom.path);
   }
@@ -130,7 +129,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.has("default") ? json.getInt("default") : null,
+            json.isNull("default") ? null : json.getInt("default"),
             json.has("min") ? json.getInt("min") : null,
             json.has("max") ? json.getInt("max") : null
         );
@@ -140,7 +139,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.has("default") ? json.getDouble("default") : null,
+            json.isNull("default") ? null : json.getDouble("default"),
             json.has("min") ? json.getDouble("min") : null,
             json.has("max") ? json.getDouble("max") : null,
             json.optBoolean("minExclusive", false),
@@ -152,7 +151,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.has("default") ? json.getBoolean("default") : null
+            json.isNull("default") ? null : json.getBoolean("default")
         );
       case TEXT:
         return new TextField(
@@ -160,7 +159,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.has("default") ? json.getString("default") : null,
+            json.isNull("default") ? null : json.getString("default"),
             json.has("minLength") ? json.getInt("minLength") : null,
             json.has("maxLength") ? json.getInt("maxLength") : null
         );
@@ -173,17 +172,17 @@ class JSONFormFactory {
         );
       case CHOICE:
         JSONArray choicesArray = json.getJSONArray("choices");
-        String[] choices = new String[choicesArray.length()];
-        for (int i = 0; i < choicesArray.length(); ++i) {
-          choices[i] = choicesArray.getString(i);
+        ArrayList<String> choices = new ArrayList<>(choicesArray.length());
+        for (Object obj: choicesArray) {
+          choices.add((String) obj);
         }
         return new ChoiceField(
             json.getString("name"),
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.has("default") ? json.getString("default") : null,
-            Arrays.asList(choices)
+            json.isNull("default") ? null : json.getString("default"),
+            choices
         );
     }
     return null;
