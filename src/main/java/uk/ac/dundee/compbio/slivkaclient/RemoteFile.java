@@ -13,13 +13,15 @@ public class RemoteFile {
   private final SlivkaClient client;
   private final String uuid;
   private final String title;
+  private final String label;
   private final String mimeType;
   private final String path;
 
-  RemoteFile(SlivkaClient client, String uuid, String title, String mimeType, String path) {
+  RemoteFile(SlivkaClient client, String uuid, String title, String label, String mimeType, String path) {
     this.client = client;
     this.uuid = uuid;
     this.title = title;
+    this.label = label;
     this.mimeType = mimeType;
     this.path = path;
   }
@@ -30,6 +32,10 @@ public class RemoteFile {
 
   public String getTitle() {
     return title;
+  }
+  
+  public String getLabel() {
+	return label;
   }
 
   public String getMimeType() {

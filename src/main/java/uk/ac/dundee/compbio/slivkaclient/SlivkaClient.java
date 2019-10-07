@@ -115,6 +115,7 @@ public class SlivkaClient {
             this,
             json.getString("uuid"),
             json.getString("title"),
+            json.getString("label"),
             json.getString("mimetype"),
             json.getString("contentURI")
         );
@@ -156,6 +157,7 @@ public class SlivkaClient {
               this,
               fileJSON.getString("uuid"),
               fileJSON.getString("title"),
+              fileJSON.getString("label"),
               fileJSON.getString("mimetype"),
               fileJSON.getString("contentURI")
           ));
