@@ -117,7 +117,7 @@ public class SlivkaClient {
             json.getString("uuid"),
             json.getString("title"),
             json.getString("label"),
-            json.getString("mimetype"),
+            json.optString("mimetype"),
             json.getString("contentURI")
         );
       } else {
@@ -159,7 +159,7 @@ public class SlivkaClient {
               fileJSON.getString("uuid"),
               fileJSON.getString("title"),
               fileJSON.getString("label"),
-              fileJSON.getString("mimetype"),
+              fileJSON.optString("mimetype"),
               fileJSON.getString("contentURI")
           ));
         }
