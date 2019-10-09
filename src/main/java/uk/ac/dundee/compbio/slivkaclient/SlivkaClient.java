@@ -21,11 +21,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import javax.swing.event.ListSelectionEvent;
 
 public class SlivkaClient {
 
@@ -168,7 +165,7 @@ public class SlivkaClient {
         }
         return files;
       } 
-      else if (statusCode == 400) {
+      else if (statusCode == 404) {
     	  return Collections.emptyList();
       }
       else {
