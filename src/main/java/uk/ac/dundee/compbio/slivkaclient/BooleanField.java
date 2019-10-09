@@ -6,8 +6,8 @@ public class BooleanField extends FormField {
   private final Boolean initial;
 
   BooleanField(String name, String label, String description,
-               boolean required, Boolean initial) {
-    super(FieldType.BOOLEAN, name, label, description, required);
+               boolean required, boolean multiple, Boolean initial) {
+    super(FieldType.BOOLEAN, name, label, description, required, multiple);
     this.initial = initial;
   }
 

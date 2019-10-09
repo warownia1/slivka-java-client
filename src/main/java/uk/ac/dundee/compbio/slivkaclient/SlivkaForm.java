@@ -20,7 +20,7 @@ public class SlivkaForm {
   private final String name;
   private final Map<String, FormField> fields;
   private final String path;
-  private final HashMap<String, Object> values;
+  private final HashMap<String, List<Object>> values;
 
   SlivkaForm(SlivkaClient client, String name, Map<String, FormField> fields, String path) {
     this.client = client;
@@ -28,6 +28,9 @@ public class SlivkaForm {
     this.fields = Collections.unmodifiableMap(fields);
     this.path = path;
     this.values = new HashMap<>();
+    for (FormField field : getFields()) {
+      values.put(field.getName(), new ArrayList<Object>());
+    }
   }
 
   SlivkaForm(SlivkaForm copyFrom) {
@@ -51,31 +54,40 @@ public class SlivkaForm {
   }
 
   public void insert(String name, Object value) {
-    values.put(name, value);
+    values.get(name).add(value);
   }
 
-  public Map<String, String> validate() throws FormValidationException {
-    Map<String, String> cleanedValues = new HashMap<>();
+  public Map<String, List<String>> validate() throws FormValidationException {
+    HashMap<String, List<String>> cleanedValues = new HashMap<>();
     ArrayList<ValidationException> errors = new ArrayList<>();
     for (FormField field : getFields()) {
-      Object value = values.get(field.getName());
-      try {
-        String cleaned = field.validate(value);
-        cleanedValues.put(field.getName(), cleaned);
-      } catch (ValidationException e) {
-        errors.add(e);
+      ArrayList<String> cleanedList = new ArrayList<>();
+      List<Object> rawValues = new ArrayList<>(values.get(field.getName()));
+      if (rawValues.isEmpty()) {
+        rawValues.add(null);
       }
+      for (Object val: rawValues) {
+        try {
+          cleanedList.add(field.validate(val));
+        }
+        catch (ValidationException e) {
+          errors.add(e);
+        }
+      }
+      cleanedValues.put(field.getName(), cleanedList);
     }
     if (!errors.isEmpty()) throw new FormValidationException(errors);
     return cleanedValues;
   }
 
   public String submit() throws FormValidationException, IOException {
-    Map<String, String> cleaned = validate();
+    Map<String, List<String>> cleanedValues = validate();
     List<NameValuePair> formParams = new ArrayList<>();
-    for (String name : cleaned.keySet()) {
-      if (cleaned.get(name) != null) {
-        formParams.add(new BasicNameValuePair(name, cleaned.get(name)));
+    for (String name : cleanedValues.keySet()) {
+      for (String val : cleanedValues.get(name)) {
+        if (val != null) {
+          formParams.add(new BasicNameValuePair(name, val));
+        }
       }
     }
     UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formParams, Consts.UTF_8);
@@ -129,6 +141,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
+            json.optBoolean("multiple", false),
             json.isNull("default") ? null : json.getInt("default"),
             json.has("min") ? json.getInt("min") : null,
             json.has("max") ? json.getInt("max") : null
@@ -139,6 +152,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
+            json.optBoolean("multiple", false),
             json.isNull("default") ? null : json.getDouble("default"),
             json.has("min") ? json.getDouble("min") : null,
             json.has("max") ? json.getDouble("max") : null,
@@ -151,6 +165,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
+            json.optBoolean("multiple", false),
             json.isNull("default") ? null : json.getBoolean("default")
         );
       case TEXT:
@@ -159,6 +174,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
+            json.optBoolean("multiple", false),
             json.isNull("default") ? null : json.getString("default"),
             json.has("minLength") ? json.getInt("minLength") : null,
             json.has("maxLength") ? json.getInt("maxLength") : null
@@ -168,7 +184,8 @@ class JSONFormFactory {
             json.getString("name"),
             json.getString("label"),
             json.getString("description"),
-            json.getBoolean("required")
+            json.getBoolean("required"),
+            json.optBoolean("multiple", false)
         );
       case CHOICE:
         JSONArray choicesArray = json.getJSONArray("choices");
@@ -181,6 +198,7 @@ class JSONFormFactory {
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
+            json.optBoolean("multiple", false),
             json.isNull("default") ? null : json.getString("default"),
             choices
         );

@@ -8,14 +8,16 @@ public abstract class FormField {
   private final String name;
   private final String label;
   private final String description;
+  private final boolean multiple;
 
   FormField(FieldType type, String name, String label,
-            String description, boolean required) {
+            String description, boolean required, boolean multiple) {
     this.type = type;
     this.name = name;
     this.required = required;
     this.label = label;
     this.description = description;
+    this.multiple = multiple;
   }
 
   /**
@@ -59,6 +61,10 @@ public abstract class FormField {
    */
   public final boolean isRequired() {
     return required;
+  }
+  
+  public final boolean hasMultipleValues() {
+    return multiple;
   }
 
   public abstract Object getDefault();

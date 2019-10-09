@@ -9,9 +9,9 @@ public class ChoiceField extends FormField {
   private final String initial;
   private final Collection<String> choices;
 
-  ChoiceField(String name, String label, String description,
-              boolean required, String initial, Collection<String> choices) {
-    super(FieldType.CHOICE, name, label, description, required);
+  ChoiceField(String name, String label, String description, boolean required, 
+              boolean multiple, String initial, Collection<String> choices) {
+    super(FieldType.CHOICE, name, label, description, required, multiple);
     this.initial = initial;
     this.choices = Collections.unmodifiableCollection(choices);
   }
@@ -28,17 +28,15 @@ public class ChoiceField extends FormField {
   public String validate(Object value) throws ValidationException {
     if (value == null)
       value = initial;
-    if (value == null)
+    if (value == null) {
       if (required)
         throw fail("required", "Field is required");
       else
         return null;
-    found:
-    {
-      for (String choice : choices) {
-        if (choice.equals(value))
-          break found;
-      }
+    }
+
+    final Object val = value;
+    if (!choices.stream().anyMatch(choice -> choice.equals(val))) {
       throw fail("invalid choice", String.format("\"%s\" is not a valid choice", value));
     }
     return value.toString();

@@ -3,8 +3,8 @@ package uk.ac.dundee.compbio.slivkaclient;
 
 public class FileField extends FormField {
 
-  FileField(String name, String label, String description, boolean required) {
-    super(FieldType.FILE, name, label, description, required);
+  FileField(String name, String label, String description, boolean required, boolean multiple) {
+    super(FieldType.FILE, name, label, description, required, multiple);
   }
 
   @Override
