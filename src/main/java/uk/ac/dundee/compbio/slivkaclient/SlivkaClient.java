@@ -46,7 +46,7 @@ public class SlivkaClient {
   }
 
   public List<SlivkaService> getServices() throws IOException {
-    CloseableHttpResponse response = httpClient.execute(new HttpGet(buildURL("services")));
+    CloseableHttpResponse response = httpClient.execute(new HttpGet(buildURL("api/services")));
     int statusCode = response.getStatusLine().getStatusCode();
     try {
       if (statusCode == 200) {
@@ -105,7 +105,7 @@ public class SlivkaClient {
   }
 
   private RemoteFile postFileEntity(HttpEntity entity) throws IOException {
-    HttpPost request = new HttpPost(buildURL("files"));
+    HttpPost request = new HttpPost(buildURL("api/files"));
     request.setEntity(entity);
     CloseableHttpResponse response = httpClient.execute(request);
     int statusCode = response.getStatusLine().getStatusCode();
@@ -129,7 +129,7 @@ public class SlivkaClient {
   }
 
   public JobState getJobState(String uuid) throws IOException {
-    URI url = buildURL(String.format("tasks/%s", uuid));
+    URI url = buildURL(String.format("api/tasks/%s", uuid));
     CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
     int statusCode = response.getStatusLine().getStatusCode();
     try {
@@ -145,7 +145,7 @@ public class SlivkaClient {
   }
 
   public List<RemoteFile> getJobResults(String uuid) throws IOException {
-    URI url = buildURL(String.format("tasks/%s/files", uuid));
+    URI url = buildURL(String.format("api/tasks/%s/files", uuid));
     CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
     int statusCode = response.getStatusLine().getStatusCode();
     try {
