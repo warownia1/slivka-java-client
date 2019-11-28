@@ -24,154 +24,213 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SlivkaClient {
+public class SlivkaClient
+{
 
   private URI slivkaURL;
+
   CloseableHttpClient httpClient = HttpClients.createDefault();
 
-  public SlivkaClient(String host, int port) throws URISyntaxException {
-    slivkaURL = new URIBuilder().setScheme("http").setHost(host).setPort(port).build();
+  public SlivkaClient(String address) throws URISyntaxException
+  {
+    this(new URIBuilder(address).build());
   }
 
-  public URI getUrl() {
+  public SlivkaClient(String host, int port, String path)
+          throws URISyntaxException
+  {
+    this(new URIBuilder().setScheme("http").setHost(host).setPort(port)
+            .setPath(path).build());
+  }
+
+  public SlivkaClient(String host, int port) throws URISyntaxException
+  {
+    this(new URIBuilder().setScheme("http").setHost(host).setPort(port)
+            .build());
+  }
+
+  public SlivkaClient(URI address)
+  {
+    slivkaURL = address;
+  }
+
+  public URI getUrl()
+  {
     return slivkaURL;
   }
 
-  public URI buildURL(String path) {
-    try {
+  public URI buildURL(String path)
+  {
+    try
+    {
+      if (!path.startsWith("/"))
+      {
+        path = slivkaURL.getPath() + "/" + path;
+      }
       return new URIBuilder(slivkaURL).setPath(path).build();
-    } catch (URISyntaxException e) {
+    } catch (URISyntaxException e)
+    {
       throw new RuntimeException(e);
     }
   }
 
-  public List<SlivkaService> getServices() throws IOException {
-    CloseableHttpResponse response = httpClient.execute(new HttpGet(buildURL("api/services")));
+  public List<SlivkaService> getServices() throws IOException
+  {
+    CloseableHttpResponse response = httpClient
+            .execute(new HttpGet(buildURL("api/services")));
     int statusCode = response.getStatusLine().getStatusCode();
-    try {
-      if (statusCode == 200) {
+    try
+    {
+      if (statusCode == 200)
+      {
         ArrayList<SlivkaService> services = new ArrayList<>();
-        JSONObject jsonData = new JSONObject(EntityUtils.toString(response.getEntity()));
+        JSONObject jsonData = new JSONObject(
+                EntityUtils.toString(response.getEntity()));
         JSONArray servicesJson = jsonData.getJSONArray("services");
-        for (int i = 0; i < servicesJson.length(); ++i) {
+        for (int i = 0; i < servicesJson.length(); ++i)
+        {
           JSONObject section = servicesJson.getJSONObject(i);
-          JSONArray classifiersJsonArray = section.getJSONArray("classifiers");
-          ArrayList<String> classifiers = new ArrayList<>(classifiersJsonArray.length());
-          for (Object obj: classifiersJsonArray) {
+          JSONArray classifiersJsonArray = section
+                  .getJSONArray("classifiers");
+          ArrayList<String> classifiers = new ArrayList<>(
+                  classifiersJsonArray.length());
+          for (Object obj : classifiersJsonArray)
+          {
             classifiers.add((String) obj);
           }
-          services.add(new SlivkaService(
-              this,
-              section.getString("name"),
-              section.getString("label"),
-              section.getString("URI"),
-              classifiers
-          ));
+          services.add(new SlivkaService(this, section.getString("name"),
+                  section.getString("label"), section.getString("URI"),
+                  classifiers));
         }
         return services;
-      } else {
+      }
+      else
+      {
         throw new HttpResponseException(statusCode, "Invalid status code");
       }
-    } finally {
+    } finally
+    {
       response.close();
     }
   }
 
-  public SlivkaService getService(String name) throws IOException {
-    for (SlivkaService service : getServices()) {
-      if (name.equals(service.getName())) {
+  public SlivkaService getService(String name) throws IOException
+  {
+    for (SlivkaService service : getServices())
+    {
+      if (name.equals(service.getName()))
+      {
         return service;
       }
     }
     return null;
   }
 
-  public RemoteFile uploadFile(File input, String mimeType) throws IOException {
+  public RemoteFile uploadFile(File input, String mimeType)
+          throws IOException
+  {
     return uploadFile(input, input.getName(), mimeType);
   }
 
-  public RemoteFile uploadFile(File input, String title, String mimeType) throws IOException {
-    HttpEntity entity = MultipartEntityBuilder.create()
-        .addBinaryBody("file", input, ContentType.create(mimeType), title)
-        .build();
+  public RemoteFile uploadFile(File input, String title, String mimeType)
+          throws IOException
+  {
+    HttpEntity entity = MultipartEntityBuilder.create().addBinaryBody(
+            "file", input, ContentType.create(mimeType), title).build();
     return postFileEntity(new BufferedHttpEntity(entity));
   }
 
-  public RemoteFile uploadFile(InputStream input, String title, String mimeType) throws IOException {
-    HttpEntity entity = MultipartEntityBuilder.create()
-        .addBinaryBody("file", input, ContentType.create(mimeType), title)
-        .build();
+  public RemoteFile uploadFile(InputStream input, String title,
+          String mimeType) throws IOException
+  {
+    HttpEntity entity = MultipartEntityBuilder.create().addBinaryBody(
+            "file", input, ContentType.create(mimeType), title).build();
     return postFileEntity(new BufferedHttpEntity(entity));
   }
 
-  private RemoteFile postFileEntity(HttpEntity entity) throws IOException {
+  private RemoteFile postFileEntity(HttpEntity entity) throws IOException
+  {
     HttpPost request = new HttpPost(buildURL("api/files"));
     request.setEntity(entity);
     CloseableHttpResponse response = httpClient.execute(request);
     int statusCode = response.getStatusLine().getStatusCode();
-    try {
-      if (statusCode == 201) {
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-        return new RemoteFile(
-            this,
-            json.getString("uuid"),
-            json.getString("title"),
-            json.getString("label"),
-            json.optString("mimetype"),
-            json.getString("contentURI")
-        );
-      } else {
+    try
+    {
+      if (statusCode == 201)
+      {
+        JSONObject json = new JSONObject(
+                EntityUtils.toString(response.getEntity()));
+        return new RemoteFile(this, json.getString("uuid"),
+                json.getString("title"), json.getString("label"),
+                json.optString("mimetype"), json.getString("contentURI"));
+      }
+      else
+      {
         throw new HttpResponseException(statusCode, "Invalid status code");
       }
-    } finally {
+    } finally
+    {
       response.close();
     }
   }
 
-  public JobState getJobState(String uuid) throws IOException {
+  public JobState getJobState(String uuid) throws IOException
+  {
     URI url = buildURL(String.format("api/tasks/%s", uuid));
     CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
     int statusCode = response.getStatusLine().getStatusCode();
-    try {
-      if (statusCode == 200) {
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+    try
+    {
+      if (statusCode == 200)
+      {
+        JSONObject json = new JSONObject(
+                EntityUtils.toString(response.getEntity()));
         return JobState.valueOf(json.getString("status").toUpperCase());
-      } else {
-        throw new HttpResponseException(statusCode, "Invalid server response");
       }
-    } finally {
+      else
+      {
+        throw new HttpResponseException(statusCode,
+                "Invalid server response");
+      }
+    } finally
+    {
       response.close();
     }
   }
 
-  public List<RemoteFile> getJobResults(String uuid) throws IOException {
+  public List<RemoteFile> getJobResults(String uuid) throws IOException
+  {
     URI url = buildURL(String.format("api/tasks/%s/files", uuid));
     CloseableHttpResponse response = httpClient.execute(new HttpGet(url));
     int statusCode = response.getStatusLine().getStatusCode();
-    try {
-      if (statusCode == 200) {
+    try
+    {
+      if (statusCode == 200)
+      {
         List<RemoteFile> files = new ArrayList<>();
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-        for (Object obj : json.getJSONArray("files")) {
+        JSONObject json = new JSONObject(
+                EntityUtils.toString(response.getEntity()));
+        for (Object obj : json.getJSONArray("files"))
+        {
           JSONObject fileJSON = (JSONObject) obj;
-          files.add(new RemoteFile(
-              this,
-              fileJSON.getString("uuid"),
-              fileJSON.getString("title"),
-              fileJSON.getString("label"),
-              fileJSON.optString("mimetype"),
-              fileJSON.getString("contentURI")
-          ));
+          files.add(new RemoteFile(this, fileJSON.getString("uuid"),
+                  fileJSON.getString("title"), fileJSON.getString("label"),
+                  fileJSON.optString("mimetype"),
+                  fileJSON.getString("contentURI")));
         }
         return files;
-      } 
-      else if (statusCode == 404) {
-    	  return Collections.emptyList();
       }
-      else {
-        throw new HttpResponseException(statusCode, "Invalid server response");
+      else if (statusCode == 404)
+      {
+        return Collections.emptyList();
       }
-    } finally {
+      else
+      {
+        throw new HttpResponseException(statusCode,
+                "Invalid server response");
+      }
+    } finally
+    {
       response.close();
     }
   }
