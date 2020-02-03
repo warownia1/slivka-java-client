@@ -1,6 +1,7 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -71,6 +72,23 @@ public class SlivkaClient
     } catch (URISyntaxException e)
     {
       throw new RuntimeException(e);
+    }
+  }
+  
+  public SlivkaVersion getVersion() throws ClientProtocolException, IOException {
+    CloseableHttpResponse response = httpClient.execute(new HttpGet(buildURL("api/version")));
+    int statusCode = response.getStatusLine().getStatusCode();
+    try {
+      if (statusCode == 200) {
+        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+        return new SlivkaVersion(json.getString("slivka"), json.getString("api"));
+      }
+      else {
+        throw new HttpResponseException(statusCode, "Invalid status code");
+      }
+    }
+    finally {
+      response.close();
     }
   }
 
