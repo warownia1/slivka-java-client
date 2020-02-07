@@ -180,12 +180,21 @@ class JSONFormFactory {
             json.has("maxLength") ? json.getInt("maxLength") : null
         );
       case FILE:
+        JSONObject jsonParams = json.optJSONObject("mediaTypeParameters");
+        HashMap<String, String> mediaTypeParams = new HashMap<>();
+        if (jsonParams != null) {
+          jsonParams.keys().forEachRemaining((String key) -> {
+            mediaTypeParams.put(key, jsonParams.get(key).toString());
+          });
+        }
         return new FileField(
             json.getString("name"),
             json.getString("label"),
             json.getString("description"),
             json.getBoolean("required"),
-            json.optBoolean("multiple", false)
+            json.optBoolean("multiple", false),
+            json.optString("mediaType"),
+            mediaTypeParams
         );
       case CHOICE:
         JSONArray choicesArray = json.getJSONArray("choices");
