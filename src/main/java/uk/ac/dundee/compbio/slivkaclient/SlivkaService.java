@@ -1,15 +1,15 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+
+import org.json.JSONObject;
+
+import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
 
 public class SlivkaService {
   private final SlivkaClient client;
@@ -45,13 +45,16 @@ public class SlivkaService {
 
   public SlivkaForm getForm() throws IOException {
     if (form == null) {
-      CloseableHttpResponse response = client.httpClient.execute(new HttpGet(getURL()));
-      int statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode == 200) {
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-        form = JSONFormFactory.getForm(client, json);
-      } else {
-        throw new HttpResponseException(statusCode, "Invalid status code");
+      HttpResponse response = client.getHttpClient().get(getURL()).execute();
+      try (response) {
+        int statusCode = response.getStatusCode();
+        if (statusCode == 200) {
+          JSONObject json = new JSONObject(response.getText());
+          form = JSONFormFactory.getForm(client, json);
+        } 
+        else {
+          throw new IOException(format("Unexpected status code: %d", statusCode));
+        }
       }
     }
     return new SlivkaForm(form);

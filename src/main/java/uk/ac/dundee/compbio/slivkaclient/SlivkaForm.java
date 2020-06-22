@@ -1,19 +1,22 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import uk.ac.dundee.compbio.slivkaclient.http.HttpRequestBuilder;
+import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
+
 
 public class SlivkaForm {
   private final SlivkaClient client;
@@ -81,26 +84,23 @@ public class SlivkaForm {
   }
 
   public String submit() throws FormValidationException, IOException {
+    HttpRequestBuilder requestBuilder = client.getHttpClient().post(client.buildURL(path));
     Map<String, List<String>> cleanedValues = validate();
-    List<NameValuePair> formParams = new ArrayList<>();
-    for (String name : cleanedValues.keySet()) {
-      for (String val : cleanedValues.get(name)) {
-        if (val != null) {
-          formParams.add(new BasicNameValuePair(name, val));
+    for (var entry : cleanedValues.entrySet()) {
+      for (var value : entry.getValue()) {
+        if (value != null) {
+          requestBuilder = requestBuilder.addParameter(entry.getKey(), value);
         }
       }
     }
-    UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formParams, Consts.UTF_8);
-    HttpPost request = new HttpPost(client.buildURL(path));
-    request.setEntity(entity);
-    CloseableHttpResponse response = client.httpClient.execute(request);
-    int statusCode = response.getStatusLine().getStatusCode();
-    try {
+    try (HttpResponse response = requestBuilder.execute()) {
+      int statusCode = response.getStatusCode();
       if (statusCode == 202) {
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+        JSONObject json = new JSONObject(response.getText());
         return json.getString("uuid");
-      } else if (statusCode == 420) {
-        JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
+      }
+      else if (statusCode == 420) {
+        JSONObject json = new JSONObject(response.getText());
         List<ValidationException> errors = new ArrayList<>();
         JSONArray errorsJSON = json.getJSONArray("errors");
         for (int i = 0; i < errorsJSON.length(); ++i) {
@@ -112,11 +112,10 @@ public class SlivkaForm {
           ));
         }
         throw new FormValidationException(errors);
-      } else {
-        throw new HttpResponseException(statusCode, "Invalid server response");
       }
-    } finally {
-      response.close();
+      else {
+        throw new IOException(format("Unexpected status code: %d", statusCode));
+      }
     }
   }
 }

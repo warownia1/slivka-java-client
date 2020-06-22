@@ -1,13 +1,14 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+
+import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
+
 
 public class RemoteFile {
   private final SlivkaClient client;
@@ -45,25 +46,33 @@ public class RemoteFile {
   public URI getURL() {
     return client.buildURL(path);
   }
-
+  
+  @Deprecated
   public void dump(OutputStream out) throws IOException {
-    CloseableHttpResponse response = client.httpClient.execute(new HttpGet(getURL()));
-    int statusCode = response.getStatusLine().getStatusCode();
-    if (statusCode == 200) {
-      response.getEntity().writeTo(out);
-    } else {
-      throw new HttpResponseException(statusCode, "Invalid server response");
+    writeTo(out);
+  }
+
+  public void writeTo(OutputStream out) throws IOException {
+    try (HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
+      int statusCode = response.getStatusCode();
+      if (statusCode == 200) {
+        response.getContent().transferTo(out);
+      }
+      else {
+        throw new IOException(format("Unexpected status code: %d", statusCode));
+      }
     }
   }
   
   public InputStream getContent() throws IOException {
-    CloseableHttpResponse response = client.httpClient.execute(new HttpGet(getURL()));
-    int statusCode = response.getStatusLine().getStatusCode();
-    if (statusCode == 200) {
-      return response.getEntity().getContent();
-    }
-    else {
-      throw new HttpResponseException(statusCode, "Invalid server response");
+    try (HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
+      int statusCode = response.getStatusCode();
+      if (statusCode == 200) {
+        return response.getContent();
+      }
+      else {
+        throw new IOException(format("Unexpected status code: %d", statusCode));
+      }
     }
   }
 }
