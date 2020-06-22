@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import uk.ac.dundee.compbio.slivkaclient.http.HttpClientWrapper;
 import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
-import uk.ac.dundee.compbio.slivkaclient.http.impl.ApacheHttpClient;
+import uk.ac.dundee.compbio.slivkaclient.http.impl.HttpClientFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,12 +24,9 @@ public class SlivkaClient
 
   private URI slivkaURL;
 
-  private HttpClientWrapper httpClient = null;
+  private HttpClientWrapper httpClient = HttpClientFactory.getDefault();
   
   HttpClientWrapper getHttpClient() {
-    if (httpClient == null) {
-      httpClient = ApacheHttpClient.create();
-    }
     return httpClient;
   }
 
