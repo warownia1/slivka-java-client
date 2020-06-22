@@ -3,11 +3,13 @@ package uk.ac.dundee.compbio.slivkaclient.http;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.function.Consumer;
 
 public interface HttpRequestBuilder {
 
   public String getMethod();
+  public URI getUri();
   public HttpRequestBuilder addHeader(String name, String value);
   public HttpRequestBuilder addParameter(String name, String value);
   public HttpRequestBuilder addFile(String name, File file);
