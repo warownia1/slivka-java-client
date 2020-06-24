@@ -28,7 +28,7 @@ import static java.lang.String.format;
 public class Main extends JFrame {
  
   SlivkaClient client = new SlivkaClient(
-      URI.create("http://www.compbio.dundee.ac.uk/slivka/")
+      URI.create("http://www-dev.compbio.dundee.ac.uk/slivka/")
       );
   JFileChooser fc = new JFileChooser();
   
@@ -74,7 +74,7 @@ public class Main extends JFrame {
   }
 
   public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> { new Main(); });
+    SwingUtilities.invokeLater(Main::new);
   }
   
   private void openFileDialog(ActionEvent event) {
@@ -97,7 +97,7 @@ public class Main extends JFrame {
     }
     catch (IOException e) {
       outputText.append(format("[ERROR] Connection error %s%n", e.toString()));
-      return;
+      e.printStackTrace();
     }
   }
   
@@ -128,7 +128,7 @@ public class Main extends JFrame {
           outputText.append(format("[LOG] Job state: %s%n", state.name()));
           if (state == JobState.COMPLETED) {
             ((Timer)evt.getSource()).stop();
-            outputText.append(format("[OK] Success"));
+            outputText.append("[OK] Success");
           }
         } catch (IOException e) {
           outputText.append(format("[ERROR] Connection error %s%n", e.toString()));
@@ -137,12 +137,14 @@ public class Main extends JFrame {
     }
     catch (IOException e) {
       outputText.append(format("[ERROR] Connection error %s%n", e.toString()));
+      e.printStackTrace();
     }
     catch (FormValidationException e) {
       outputText.append("[ERROR] Invalid input data\n");
       for (ValidationException exc : e.getErrors()) {
         outputText.append(format("[ERROR] %s: %s%n", exc.getField().getName(), exc.getMessage()));
       }
+      e.printStackTrace();
     }
   }
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.apache.http.Consts;
@@ -108,29 +109,29 @@ public class ApacheHttpClient implements HttpClientWrapper {
     }
 
     @Override
-    public HttpRequestBuilder doneCallback(
-        Consumer<? super HttpResponse> consumer) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public HttpRequestBuilder failCallback(
-        Consumer<? super HttpResponse> consumer) {
-      // TODO Auto-generated method stub
-      return this;
-    }
-
-    @Override
-    public HttpRequestBuilder alwaysCallback(
-        Consumer<? super HttpResponse> consumer) {
-      // TODO Auto-generated method stub
-      return this;
-    }
-
-    @Override
     public HttpResponse execute() throws IOException {
       return new HttpResponseWrapper(httpClient.execute(request));
+    }
+
+    @Override
+    public void executeAsync(
+        Consumer<HttpResponse> done,
+        BiConsumer<HttpResponse, ? super IOException> fail,
+        BiConsumer<HttpResponse, ? super IOException> always)
+    {
+      new Thread(() -> {
+        try {
+          try (HttpResponse response = execute()) {
+            if (done != null) done.accept(response);
+            if (always != null) always.accept(response, null);
+            if (fail != null && response.getStatusCode() >= 400) fail.accept(response, null);
+          }
+        }
+        catch (IOException e) {
+          if (fail != null) fail.accept(null, e);
+          if (always != null) always.accept(null, e);
+        }
+      }).start();
     }
   }
 

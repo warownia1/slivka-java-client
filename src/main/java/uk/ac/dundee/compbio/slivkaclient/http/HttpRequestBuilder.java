@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface HttpRequestBuilder {
@@ -14,8 +15,10 @@ public interface HttpRequestBuilder {
   public HttpRequestBuilder addParameter(String name, String value);
   public HttpRequestBuilder addFile(String name, File file);
   public HttpRequestBuilder addFile(String name, InputStream stream);
-  public HttpRequestBuilder doneCallback(Consumer<? super HttpResponse> consumer);
-  public HttpRequestBuilder failCallback(Consumer<? super HttpResponse> consumer);
-  public HttpRequestBuilder alwaysCallback(Consumer<? super HttpResponse> consumer);
   public HttpResponse execute() throws IOException;
+  public void executeAsync(
+      Consumer<HttpResponse> done,
+      BiConsumer<HttpResponse, ? super IOException> fail,
+      BiConsumer<HttpResponse, ? super IOException> always
+  );
 }
