@@ -1,44 +1,33 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 
-public class BooleanField extends FormField {
+import org.json.JSONObject;
+
+public final class BooleanField extends FormField {
 
   private final Boolean initial;
 
-  BooleanField(String name, String label, String description,
-               boolean required, boolean multiple, Boolean initial) {
+  private BooleanField(
+      String name, String label, String description,
+      boolean required, boolean multiple, Boolean initial
+  ) {
     super(FieldType.BOOLEAN, name, label, description, required, multiple);
     this.initial = initial;
   }
 
-  public Boolean getDefault() {
-    return initial;
+  public static BooleanField newFromJson(JSONObject json) {
+    return new BooleanField(
+        json.getString("name"),
+        json.getString("label"),
+        json.getString("description"),
+        json.getBoolean("required"),
+        json.optBoolean("multiple", false),
+        json.isNull("default") ? null : json.getBoolean("default")
+    );
   }
 
-  @Override
-  public String validate(Object value) throws ValidationException {
-    if (value == null) {
-      value = initial;
-    }
-    if (value == null) {
-      if (required)
-        throw fail("required", "Field is required");
-      else
-        return null;
-    }
-    if (!(value instanceof Boolean)) {
-      throw fail("type", "Not a valid Boolean");
-    }
-    Boolean val = (Boolean) value;
-    if (required && !val) {
-      throw fail("required", "Field is required");
-    }
-    return val.toString();
-  }
-  
-  @Override
-  public Boolean valueOf(String value) {
-    return Boolean.valueOf(value);
+  public Boolean getDefault() {
+    return initial;
   }
 
 }

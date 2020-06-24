@@ -1,29 +1,41 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class FileField extends FormField {
 
-  private String mediaType;
-  private Map<String, String> mediaTypeParameters;
+  private final String mediaType;
+  private final Map<String, String> mediaTypeParameters;
   
-  FileField(String name, String label, String description, boolean required, boolean multiple, String mediaType, Map<String, String> mediaTypeParameters) {
+  private FileField(
+      String name, String label, String description, boolean required,
+      boolean multiple, String mediaType, Map<String, String> mediaTypeParameters
+  ) {
     super(FieldType.FILE, name, label, description, required, multiple);
     this.mediaType = mediaType;
     this.mediaTypeParameters = mediaTypeParameters;
   }
 
-  @Override
-  public String validate(Object value) throws ValidationException {
-    if (value == null)
-      if (required)
-        throw fail("required", "Field is required");
-      else
-        return null;
-    if (!(value instanceof RemoteFile))
-      throw fail("type", "Invalid value type");
-    RemoteFile wrapper = (RemoteFile) value;
-    return wrapper.getUUID();
+  public static FileField newFromJson(JSONObject json) {
+    JSONObject jsonParams = json.optJSONObject("mediaTypeParameters");
+    HashMap<String, String> mediaTypeParams = new HashMap<>();
+    if (jsonParams != null) {
+      jsonParams.keys().forEachRemaining((String key) -> {
+        mediaTypeParams.put(key, jsonParams.get(key).toString());
+      });
+    }
+    return new FileField(
+        json.getString("name"),
+        json.getString("label"),
+        json.getString("description"),
+        json.getBoolean("required"),
+        json.optBoolean("multiple", false),
+        json.optString("mediaType"),
+        mediaTypeParams
+    );
   }
   
   public String getMediaType() {
@@ -37,9 +49,5 @@ public class FileField extends FormField {
   @Override
   public Object getDefault() {
     return null;
-  }
-
-  public Object valueOf(String value) {
-    throw new RuntimeException("Cannot create file field value form string");
   }
 }

@@ -1,46 +1,37 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 
-public class IntegerField extends FormField {
+import org.json.JSONObject;
+
+public final class IntegerField extends FormField {
 
   private final Integer initial;
-
-
   private final Integer max;
   private final Integer min;
 
-  IntegerField(String name, String label, String description, boolean required,
-               boolean multiple, Integer initial, Integer min, Integer max) {
+  private IntegerField(
+      String name, String label, String description, boolean required,
+      boolean multiple, Integer initial, Integer min, Integer max
+  ) {
     super(FieldType.INTEGER, name, label, description, required, multiple);
     this.initial = initial;
     this.min = min;
     this.max = max;
   }
 
-  @Override
-  public String validate(Object value) throws ValidationException {
-    if (value == null)
-      value = initial;
-    if (value == null)
-      if (required)
-        throw fail("required", "Field is required");
-      else
-        return null;
-    if (!(value instanceof Integer))
-      throw fail("type", "Not a valid integer");
-    Integer val = (Integer) value;
-    if (max != null && val > max)
-      throw fail("max", "Value is too large");
-    if (min != null && val < min)
-      throw fail("min", "Value is too small");
-    return val.toString();
+  public static IntegerField newFromJson(JSONObject json) {
+    return new IntegerField(
+        json.getString("name"),
+        json.getString("label"),
+        json.getString("description"),
+        json.getBoolean("required"),
+        json.optBoolean("multiple", false),
+        json.isNull("default") ? null : json.getInt("default"),
+        json.has("min") ? json.getInt("min") : null,
+        json.has("max") ? json.getInt("max") : null
+    );
   }
 
-  @Override
-  public Integer valueOf(String value) {
-    return value != null ? Integer.valueOf(value) : null;
-  }
-  
   @Override
   public Integer getDefault() {
     return initial;

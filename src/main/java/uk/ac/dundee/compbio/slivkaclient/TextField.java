@@ -1,44 +1,35 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 
-public class TextField extends FormField {
+import org.json.JSONObject;
+
+public final class TextField extends FormField {
 
   private final String initial;
   private final Integer maxLength;
-
-
   private final Integer minLength;
 
-  TextField(String name, String label, String description, boolean required, 
-            boolean multiple, String initial, Integer minLength, Integer maxLength) {
+  private TextField(
+      String name, String label, String description, boolean required,
+      boolean multiple, String initial, Integer minLength, Integer maxLength
+  ) {
     super(FieldType.TEXT, name, label, description, required, multiple);
     this.initial = initial;
     this.minLength = minLength;
     this.maxLength = maxLength;
   }
 
-  @Override
-  public String validate(Object value) throws ValidationException {
-    if (value == null)
-      value = initial;
-    if (value == null)
-      if (required)
-        throw fail("required", "Field is required");
-      else
-        return null;
-    if (!(value instanceof String))
-      throw fail("type", "Not a valid String");
-    String val = (String) value;
-    if (minLength != null && val.length() < minLength)
-      throw fail("min length", "String is too short");
-    if (maxLength != null && val.length() > maxLength)
-      throw fail("max length", "String is too long");
-    return val;
-  }
-  
-  @Override
-  public String valueOf(String value) {
-    return value;
+  public static TextField newFromJson(JSONObject json) {
+    return new TextField(
+        json.getString("name"),
+        json.getString("label"),
+        json.getString("description"),
+        json.getBoolean("required"),
+        json.optBoolean("multiple", false),
+        json.isNull("default") ? null : json.getString("default"),
+        json.has("minLength") ? json.getInt("minLength") : null,
+        json.has("maxLength") ? json.getInt("maxLength") : null
+    );
   }
 
   @Override

@@ -1,23 +1,42 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 
-public class DecimalField extends FormField {
+import org.json.JSONObject;
 
+public final class DecimalField extends FormField {
+
+  private final Double initial;
   private final Double min;
   private final Double max;
   private final boolean minExc;
   private final boolean maxExc;
-  private final Double initial;
 
-  DecimalField(String name, String label, String description,
-               boolean required, boolean multiple, Double initial,
-               Double min, Double max, boolean minExc, boolean maxExc) {
+  private DecimalField(
+      String name, String label, String description,
+      boolean required, boolean multiple, Double initial,
+      Double min, Double max, boolean minExc, boolean maxExc
+  ) {
     super(FieldType.DECIMAL, name, label, description, required, multiple);
     this.initial = initial;
     this.min = min;
     this.max = max;
     this.minExc = minExc;
     this.maxExc = maxExc;
+  }
+
+  public static DecimalField newFromJson(JSONObject json) {
+    return new DecimalField(
+        json.getString("name"),
+        json.getString("label"),
+        json.getString("description"),
+        json.getBoolean("required"),
+        json.optBoolean("multiple", false),
+        json.isNull("default") ? null : json.getDouble("default"),
+        json.has("min") ? json.getDouble("min") : null,
+        json.has("max") ? json.getDouble("max") : null,
+        json.optBoolean("minExclusive", false),
+        json.optBoolean("maxExclusive", false)
+    );
   }
 
   public Double getMin() {
@@ -38,37 +57,5 @@ public class DecimalField extends FormField {
 
   public Double getDefault() {
     return initial;
-  }
-
-  @Override
-  public String validate(Object value) throws ValidationException {
-    if (value == null)
-      value = initial;
-    if (value == null)
-      if (required)
-        throw fail("required", "Field is required");
-      else
-        return null;
-    if (!(value instanceof Double))
-      throw fail("type", "Not a valid double");
-    Double val = (Double) value;
-    if (max != null) {
-      if (maxExc && val >= max)
-        throw fail("max", "Value is too large");
-      if (!maxExc && val > max)
-        throw fail("max", "Value is too large");
-    }
-    if (min != null) {
-      if (minExc && val <= min)
-        throw fail("min", "Value is too small");
-      if (!minExc && val < min)
-        throw fail("min", "Value is too small");
-    }
-    return val.toString();
-  }
-
-  @Override
-  public Double valueOf(String value) {
-    return value != null ? Double.valueOf(value) : null;
   }
 }

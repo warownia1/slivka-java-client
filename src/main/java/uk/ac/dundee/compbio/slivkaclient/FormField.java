@@ -1,17 +1,21 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
 
+import org.json.JSONObject;
+
 public abstract class FormField {
 
-  private final FieldType type;
+  protected final FieldType type;
   protected final boolean required;
-  private final String name;
-  private final String label;
-  private final String description;
-  private final boolean multiple;
+  protected final String name;
+  protected final String label;
+  protected final String description;
+  protected final boolean multiple;
 
-  FormField(FieldType type, String name, String label,
-            String description, boolean required, boolean multiple) {
+  protected FormField(
+      FieldType type, String name, String label,
+      String description, boolean required, boolean multiple
+  ) {
     this.type = type;
     this.name = name;
     this.required = required;
@@ -62,8 +66,13 @@ public abstract class FormField {
   public final boolean isRequired() {
     return required;
   }
-  
+
+  @Deprecated
   public final boolean hasMultipleValues() {
+    return multiple;
+  }
+
+  public final boolean isMultivalued() {
     return multiple;
   }
 
@@ -87,25 +96,7 @@ public abstract class FormField {
     return description;
   }
 
-  /**
-   * Tests if the value is valid for that field.
-   * <p>
-   * FormField subclasses override this method to provide specialised value checks.
-   * Values passed to the form are checked by each field's validate method.
-   *
-   * @param value Value to be compared against field constraints
-   * @return String to be submitted
-   * @throws ValidationException If the value violates any of the field constraints.
-   */
-  public abstract String validate(Object value) throws ValidationException;
-  
-  public abstract Object valueOf(String value);
-
-  protected ValidationException fail(String code, String message) {
-    return new ValidationException(this, code, message);
-  }
-
   public String toString() {
-    return String.format("%s:%s", name, type.toString());
+    return String.format("%s(%s)", getClass().getName(), name);
   }
 }
