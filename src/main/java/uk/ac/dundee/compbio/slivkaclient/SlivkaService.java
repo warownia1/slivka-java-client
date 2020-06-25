@@ -7,9 +7,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
+import javajs.http.HttpClient;
 import org.json.JSONObject;
-
-import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
 
 public class SlivkaService {
   private final SlivkaClient client;
@@ -45,7 +44,7 @@ public class SlivkaService {
 
   public SlivkaForm getForm() throws IOException {
     if (form == null) {
-      HttpResponse response = client.getHttpClient().get(getURL()).execute();
+      HttpClient.HttpResponse response = client.getHttpClient().get(getURL()).execute();
       try (response) {
         int statusCode = response.getStatusCode();
         if (statusCode == 200) {

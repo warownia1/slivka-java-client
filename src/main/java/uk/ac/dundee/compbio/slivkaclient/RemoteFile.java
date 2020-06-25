@@ -1,13 +1,13 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
+import javajs.http.HttpClient;
+
 import static java.lang.String.format;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-
-import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
 
 
 public class RemoteFile {
@@ -53,7 +53,7 @@ public class RemoteFile {
   }
 
   public void writeTo(OutputStream out) throws IOException {
-    try (HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
+    try (HttpClient.HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
       int statusCode = response.getStatusCode();
       if (statusCode == 200) {
         response.getContent().transferTo(out);
@@ -65,7 +65,7 @@ public class RemoteFile {
   }
   
   public InputStream getContent() throws IOException {
-    try (HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
+    try (HttpClient.HttpResponse response = client.getHttpClient().get(getURL()).execute()) {
       int statusCode = response.getStatusCode();
       if (statusCode == 200) {
         return response.getContent();
@@ -74,5 +74,10 @@ public class RemoteFile {
         throw new IOException(format("Unexpected status code: %d", statusCode));
       }
     }
+  }
+  
+  @Override
+  public String toString() {
+    return uuid;
   }
 }

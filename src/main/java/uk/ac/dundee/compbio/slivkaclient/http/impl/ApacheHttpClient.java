@@ -1,5 +1,17 @@
 package uk.ac.dundee.compbio.slivkaclient.http.impl;
 
+import javajs.http.HttpClient;
+import org.apache.http.Consts;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,66 +23,40 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 
-import uk.ac.dundee.compbio.slivkaclient.http.HttpClientWrapper;
-import uk.ac.dundee.compbio.slivkaclient.http.HttpRequestBuilder;
-import uk.ac.dundee.compbio.slivkaclient.http.HttpResponse;
+public class ApacheHttpClient implements HttpClient {
 
-
-public class ApacheHttpClient implements HttpClientWrapper {
-
-  private CloseableHttpClient httpClient = HttpClients.createDefault();
+  private final CloseableHttpClient httpClient = HttpClients.createDefault();
   
-  private ApacheHttpClient() {}
-  
-  public static HttpClientWrapper create() {
-    return new ApacheHttpClient();
-  }
+  public ApacheHttpClient() {}
 
   @Override
-  public HttpRequestBuilder get(URI uri) {
+  public HttpRequest get(URI uri) {
     return new BaseRequestBuilder(new HttpGet(uri));
   }
   
   @Override
-  public HttpRequestBuilder head(URI uri) {
+  public HttpRequest head(URI uri) {
     return new BaseRequestBuilder(new HttpHead(uri));
   }
 
   @Override
-  public HttpRequestBuilder post(URI uri) {
+  public HttpRequest post(URI uri) {
     return new FormRequestBuilder(new HttpPost(uri));
   }
 
   @Override
-  public HttpRequestBuilder put(URI uri) {
+  public HttpRequest put(URI uri) {
     return new FormRequestBuilder(new HttpPut(uri));
   }
 
   @Override
-  public HttpRequestBuilder delete(URI uri) {
+  public HttpRequest delete(URI uri) {
     return new BaseRequestBuilder(new HttpDelete(uri));
   }
  
 
-  private class BaseRequestBuilder implements HttpRequestBuilder {
+  private class BaseRequestBuilder implements HttpRequest {
     protected HttpRequestBase request;
     
     BaseRequestBuilder(HttpRequestBase request) {
@@ -88,22 +74,22 @@ public class ApacheHttpClient implements HttpClientWrapper {
     }
 
     @Override
-    public HttpRequestBuilder addParameter(String name, String value) {
+    public BaseRequestBuilder addParameter(String name, String value) {
       throw new UnsupportedOperationException("BaseRequestBuilder does not support parameters.");
     }
 
     @Override
-    public HttpRequestBuilder addFile(String name, File file) {
+    public BaseRequestBuilder addFile(String name, File file) {
       throw new UnsupportedOperationException("BaseRequestBuilder does not support parameters.");
     }
 
     @Override
-    public HttpRequestBuilder addFile(String name, InputStream stream) {
+    public BaseRequestBuilder addFile(String name, InputStream stream) {
       throw new UnsupportedOperationException("BaseRequestBuilder does not support parameters.");
     }
 
     @Override
-    public HttpRequestBuilder addHeader(String name, String value) {
+    public BaseRequestBuilder addHeader(String name, String value) {
       request.addHeader(name, value);
       return this;
     }
@@ -139,7 +125,7 @@ public class ApacheHttpClient implements HttpClientWrapper {
   private class FormRequestBuilder extends BaseRequestBuilder {
     
     protected HttpEntityEnclosingRequestBase request;
-    private ArrayList<NameValuePair> formParams = new ArrayList<>();
+    private final ArrayList<NameValuePair> formParams = new ArrayList<>();
     
     List<NameValuePair> getParameters() {
       return formParams;
@@ -151,19 +137,19 @@ public class ApacheHttpClient implements HttpClientWrapper {
     }
     
     @Override
-    public HttpRequestBuilder addParameter(String name, String value) {
+    public BaseRequestBuilder addParameter(String name, String value) {
       formParams.add(new BasicNameValuePair(name, value));
       return this;
     }
     
     @Override
-    public HttpRequestBuilder addFile(String name, InputStream stream) {
+    public BaseRequestBuilder addFile(String name, InputStream stream) {
       MultipartRequestBuilder builder = new MultipartRequestBuilder(this);
       return builder.addFile(name, stream);
     }
     
     @Override
-    public HttpRequestBuilder addFile(String name, File file) {
+    public BaseRequestBuilder addFile(String name, File file) {
       MultipartRequestBuilder builder = new MultipartRequestBuilder(this);
       return builder.addFile(name, file);
     }
@@ -180,7 +166,7 @@ public class ApacheHttpClient implements HttpClientWrapper {
   private class MultipartRequestBuilder extends BaseRequestBuilder {
     
     protected HttpEntityEnclosingRequestBase request;
-    private MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+    private final MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
     
     MultipartRequestBuilder(FormRequestBuilder builder) {
       super(builder.request);
@@ -191,20 +177,20 @@ public class ApacheHttpClient implements HttpClientWrapper {
     }
     
     @Override
-    public HttpRequestBuilder addParameter(String name, String value) {
+    public BaseRequestBuilder addParameter(String name, String value) {
       entityBuilder.addTextBody(name, value);
       return this;
     }
     
     @Override
-    public HttpRequestBuilder addFile(String name, InputStream stream) {
+    public BaseRequestBuilder addFile(String name, InputStream stream) {
       // filename must be set, otherwise it won't be posted as a file
       entityBuilder.addBinaryBody(name, stream, ContentType.DEFAULT_BINARY, "file");
       return this;
     }
     
     @Override
-    public HttpRequestBuilder addFile(String name, File file) {
+    public BaseRequestBuilder addFile(String name, File file) {
       entityBuilder.addBinaryBody(name, file);
       return this;
     }
@@ -217,7 +203,7 @@ public class ApacheHttpClient implements HttpClientWrapper {
   }
   
   
-  private class HttpResponseWrapper implements HttpResponse {
+  private static class HttpResponseWrapper implements HttpResponse {
     
     CloseableHttpResponse response;
     
