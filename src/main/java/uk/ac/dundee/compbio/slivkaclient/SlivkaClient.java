@@ -2,8 +2,6 @@ package uk.ac.dundee.compbio.slivkaclient;
 
 import javajs.http.HttpClient;
 import javajs.http.HttpClientFactory;
-import uk.ac.dundee.compbio.slivkaclient.http.impl.ApacheHttpClient;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,24 +9,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import static java.lang.String.format;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.lang.String.format;
+
 public class SlivkaClient {
 
   private URI slivkaURL;
 
-  private HttpClient httpClient = HttpClientFactory
-      .getClient(ApacheHttpClient.class.getName());
+  private HttpClient httpClient = HttpClientFactory.getClient(null);
 
-  HttpClient getHttpClient() {
+  public HttpClient getHttpClient() {
     return httpClient;
   }
 
+  public void setHttpClient(final HttpClient httpClient) {
+    this.httpClient = httpClient;
+  }
+  
   public SlivkaClient(URI address) {
     slivkaURL = address;
   }
@@ -159,8 +161,7 @@ public class SlivkaClient {
 
   public List<RemoteFile> getJobResults(String uuid) throws IOException {
     URI url = buildURL(format("api/tasks/%s/files", uuid));
-    HttpClient.HttpResponse response = getHttpClient().get(url).execute();
-    try {
+    try (HttpClient.HttpResponse response = getHttpClient().get(url).execute()) {
       int statusCode = response.getStatusCode();
       if (statusCode == 200) {
         List<RemoteFile> files = new ArrayList<>();
@@ -178,8 +179,6 @@ public class SlivkaClient {
       } else {
         throw new IOException(format("Unexpected status code: %d", statusCode));
       }
-    } finally {
-      response.close();
     }
   }
 

@@ -1,5 +1,7 @@
 package javajs.http;
 
+import uk.ac.dundee.compbio.slivkaclient.http.impl.ApacheHttpClient;
+
 /**
  * A class with just one method, which allows implementation in Java or
  * JavaScript. You should probably copy this factory to your code base and add
@@ -14,7 +16,7 @@ package javajs.http;
  */
 public class HttpClientFactory {
  
-  private static String defaultClassName = "javajs.http.JSHttpClient";
+  private static String defaultClassName = ApacheHttpClient.class.getName();
  
   public static void setDefaultClassName(String className) {
     if (className != null)

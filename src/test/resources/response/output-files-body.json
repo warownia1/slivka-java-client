@@ -1,0 +1,37 @@
+{
+  "statuscode": 200,
+  "files": [
+    {
+      "uuid": "frdeQI2PTa6hh4fBsptnXg/output.txt",
+      "title": "output.txt",
+      "label": "message",
+      "mimetype": "text/plain",
+      "URI": "/slivka/api/files/frdeQI2PTa6hh4fBsptnXg/output.txt",
+      "contentURI": "/slivka/media/tasks/200701swryiv4k/output.txt"
+    },
+    {
+      "uuid": "frdeQI2PTa6hh4fBsptnXg/stdout",
+      "title": "stdout",
+      "label": "content",
+      "mimetype": "text/plain",
+      "URI": "/slivka/api/files/frdeQI2PTa6hh4fBsptnXg/stdout",
+      "contentURI": "/slivka/media/tasks/200701swryiv4k/stdout"
+    },
+    {
+      "uuid": "frdeQI2PTa6hh4fBsptnXg/stderr",
+      "title": "stderr",
+      "label": "log",
+      "mimetype": "text/plain",
+      "URI": "/slivka/api/files/frdeQI2PTa6hh4fBsptnXg/stderr",
+      "contentURI": "/slivka/media/tasks/200701swryiv4k/stderr"
+    },
+    {
+      "uuid": "frdeQI2PTa6hh4fBsptnXg/extra-output.1.json",
+      "title": "extra-output.1.json",
+      "label": "extra",
+      "mimetype": "application/json",
+      "URI": "/slivka/api/files/frdeQI2PTa6hh4fBsptnXg/extra-output.1.json",
+      "contentURI": "/slivka/media/tasks/200701swryiv4k/extra-output.1.json"
+    }
+  ]
+}

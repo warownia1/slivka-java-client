@@ -1,0 +1,97 @@
+{
+  "statuscode": 200,
+  "name": "mock-service",
+  "URI": "/slivka/api/services/mock-service",
+  "fields": [
+    {
+      "type": "text",
+      "name": "required-field",
+      "label": "Required",
+      "description": "",
+      "required": true
+    },
+    {
+      "type": "text",
+      "name": "not-required-field",
+      "label": "Not required",
+      "description": "",
+      "required": false
+    },
+    {
+      "type": "text",
+      "name": "multivalue-field",
+      "label": "Multiple",
+      "description": "",
+      "multiple": true,
+      "required": false
+    },
+    {
+      "type": "file",
+      "name": "file-field",
+      "label": "Input file parameter",
+      "description": "Provide input file here",
+      "required": true,
+      "multiple": false,
+      "default": null,
+      "mimetype": "application/json",
+      "mediaType": "application/json",
+      "mediaTypeParameters": {
+        "type": "array",
+        "maxItems": 5
+      }
+    },
+    {
+      "type": "boolean",
+      "name": "bool-field",
+      "label": "Flag parameter",
+      "description": "Testing flags",
+      "required": false,
+      "multiple": false,
+      "default": true
+    },
+    {
+      "type": "integer",
+      "name": "int-field",
+      "label": "Integer parameter",
+      "description": "Testing integer value",
+      "required": true,
+      "multiple": false,
+      "default": 1,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "type": "decimal",
+      "name": "float-field",
+      "label": "Floating number",
+      "description": "Testing floating point number value",
+      "required": true,
+      "multiple": false,
+      "default": 0.5,
+      "min": 0.0,
+      "max": 1.0,
+      "minExclusive": true
+    },
+    {
+      "type": "text",
+      "name": "text-field",
+      "label": "Text parameter",
+      "description": "Testing text value",
+      "required": false,
+      "multiple": true,
+      "default": "def-string"
+    },
+    {
+      "type": "choice",
+      "name": "choice-field",
+      "label": "Choice Field",
+      "description": "Make a choice",
+      "required": false,
+      "multiple": false,
+      "choices": [
+        "select 1", "select 2", "select 3"
+      ],
+      "default": "select 2"
+    }
+  ]
+}

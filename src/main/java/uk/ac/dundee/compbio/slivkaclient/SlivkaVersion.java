@@ -7,4 +7,8 @@ public class SlivkaVersion
     this.slivka = slivka;
     this.api = api;
   }
+  
+  public String toString() {
+    return String.format("SlivkaVersion(slivka=%s, api=%s)", slivka, api);
+  }
 }

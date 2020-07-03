@@ -1,0 +1,21 @@
+{
+  "statuscode": 200,
+  "services": [
+    {
+      "name": "service-1",
+      "label": "Service One",
+      "URI": "/slivka/api/services/service-1",
+      "classifiers": [
+        "Type=test"
+      ]
+    },
+    {
+      "name": "service-2",
+      "label": "Service Two",
+      "URI": "/slivka/api/services/service-2",
+      "classifiers": [
+        "Type=test"
+      ]
+    }
+  ]
+}
