@@ -18,7 +18,8 @@ public class SlivkaJobManagementTests {
 
   private SlivkaClient client = null;
   private final HttpClientStub httpClient = new HttpClientStub();
-  private static final URI slivkaUrl = URI.create("http://example.org/slivka/");
+  private static final URI slivkaUrl = URI
+      .create("http://example.org/slivka/");
   private static final String jobId = "frdeQI2PTa6hh4fBsptnXg";
   private HttpClientStub.HttpRequestMock req = null;
   private HttpClientStub.HttpResponseMock rep = null;
@@ -43,7 +44,8 @@ public class SlivkaJobManagementTests {
   public void tearDown() {
     try {
       rep.close();
-    } catch (IOException ioe) {
+    }
+    catch (IOException ioe) {
       ioe.printStackTrace();
     }
   }
@@ -53,12 +55,15 @@ public class SlivkaJobManagementTests {
     rep.setStatusCode(200);
     rep.setContentLocation("/response/job-completed-body.json");
     try {
-      var state = client.getJobState(jobId);
-    } catch (IOException e) {
+      client.getJobState(jobId);
+    }
+    catch (IOException e) {
       fail("connection error", e);
     }
     assertEquals(req.getMethod(), "GET");
-    assertEquals(req.getUri(), slivkaUrl.resolve(format("api/tasks/%s", jobId)));
+    assertEquals(
+        req.getUri(), slivkaUrl.resolve(format("api/tasks/%s", jobId))
+    );
   }
 
   @Test
@@ -68,7 +73,8 @@ public class SlivkaJobManagementTests {
     try {
       var state = client.getJobState(jobId);
       assertEquals(state, JobState.COMPLETED);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       fail("connection error", e);
     }
   }
@@ -80,7 +86,8 @@ public class SlivkaJobManagementTests {
     try {
       var state = client.getJobState(jobId);
       assertEquals(state, JobState.FAILED);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       fail("connection error", e);
     }
   }
@@ -90,10 +97,13 @@ public class SlivkaJobManagementTests {
     rep.setStatusCode(200);
     try {
       client.cancelJob(jobId);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       fail("connection error", e);
     }
-    assertEquals(req.getUri(), slivkaUrl.resolve(format("api/tasks/%s", jobId)));
+    assertEquals(
+        req.getUri(), slivkaUrl.resolve(format("api/tasks/%s", jobId))
+    );
     assertEquals(req.getMethod(), "DELETE");
   }
 }

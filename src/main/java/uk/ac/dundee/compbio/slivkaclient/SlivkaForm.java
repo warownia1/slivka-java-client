@@ -85,11 +85,11 @@ public class SlivkaForm {
     for (var entry : values.entrySet()) {
       for (var value : entry.getValue()) {
         if (value instanceof File) {
-          request = request.addFile(entry.getKey(), (File) value);
+          request = request.addFilePart(entry.getKey(), (File) value);
         } else if (value instanceof InputStream) {
-          request = request.addFile(entry.getKey(), (InputStream) value);
+          request = request.addFilePart(entry.getKey(), (InputStream) value);
         } else {
-          request = request.addParameter(entry.getKey(), value.toString());
+          request = request.addFormPart(entry.getKey(), value.toString());
         }
       }
     }

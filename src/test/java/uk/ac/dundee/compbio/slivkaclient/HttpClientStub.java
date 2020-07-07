@@ -99,23 +99,48 @@ public class HttpClientStub implements HttpClient {
     }
 
     @Override
-    public HttpRequest addParameter(String name, String value) {
+    public HttpRequest addQueryParameter(String name, String value) {
+      return this;
+    }
+
+    @Override
+    public HttpRequest clearQueryParameters(String name) {
+      return this;
+    }
+
+    @Override
+    public HttpRequest addFormPart(String name, String value) {
       stringParams.add(Map.entry(name, value));
       return this;
     }
 
-    public List<Map.Entry<String, String>> getParameters() {
+    public List<Map.Entry<String, String>> getFormParts() {
       return stringParams;
     }
 
     @Override
-    public HttpRequest addFile(String name, File file) {
+    public HttpRequest clearFormParts(String name) {
+      for (var it = stringParams.iterator(); it.hasNext();) {
+        var entry = it.next();
+        if (entry.getKey().equals(name)) {
+          it.remove();
+        }
+      }
+      return this;
+    }
+
+    @Override
+    public HttpRequest addFilePart(
+        String name, File file, String contentType, String fileName
+    ) {
       fileParams.add(Map.entry(name, file));
       return this;
     }
 
     @Override
-    public HttpRequest addFile(String name, InputStream stream) {
+    public HttpRequest addFilePart(
+        String name, InputStream stream, String contentType, String fileName
+    ) {
       fileParams.add(Map.entry(name, stream));
       return this;
     }
@@ -136,12 +161,14 @@ public class HttpClientStub implements HttpClient {
     }
 
     @Override
-    public void executeAsync(Consumer<HttpResponse> success,
+    public void executeAsync(
+        Consumer<HttpResponse> success,
         BiConsumer<HttpResponse, ? super IOException> failure,
-        BiConsumer<HttpResponse, ? super IOException> always) {
+        BiConsumer<HttpResponse, ? super IOException> always
+    ) {
       // TODO Auto-generated method stub
     }
-    
+
     void setResponse(HttpResponse response) {
       this.response = response;
     }

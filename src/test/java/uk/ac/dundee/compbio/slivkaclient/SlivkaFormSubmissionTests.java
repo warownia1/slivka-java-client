@@ -72,7 +72,7 @@ public class SlivkaFormSubmissionTests {
     form.add("text-field", "foobar");
     try {
       form.submit();
-      var param = req.getParameters().get(0);
+      var param = req.getFormParts().get(0);
       assertEquals(param.getKey(), "text-field");
       assertEquals(param.getValue(), "foobar");
     } catch (FormValidationException | IOException e) {
@@ -85,7 +85,7 @@ public class SlivkaFormSubmissionTests {
     form.add("int-field", 10);
     try {
       form.submit();
-      var param = req.getParameters().get(0);
+      var param = req.getFormParts().get(0);
       assertEquals(param.getKey(), "int-field");
       assertEquals(param.getValue(), "10");
     } catch (FormValidationException | IOException e) {
@@ -114,7 +114,7 @@ public class SlivkaFormSubmissionTests {
     form.add("text-field", "quz");
     try {
       form.submit();
-      var actual = req.getParameters().stream()
+      var actual = req.getFormParts().stream()
           .filter(item -> item.getKey().equals("text-field"))
           .map(Map.Entry::getValue)
           .toArray();
