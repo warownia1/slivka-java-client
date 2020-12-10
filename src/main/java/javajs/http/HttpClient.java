@@ -20,20 +20,49 @@ public interface HttpClient {
 
   public interface HttpRequest {
 
+    public final static String METHOD_GET = "GET";
+    public final static String METHOD_POST = "POST";
+    public final static String METHOD_PUT = "PUT";
+    public final static String METHOD_HEAD = "HEAD";
+    public final static String METHOD_DELETE = "DELETE";
+
+		/**
+		 * Retrieve the method name for this request.
+		 * 
+		 * @return one of {GET, POST, PUT, DELETE, or HEAD}
+		 */
     public String getMethod();
 
+		/**
+		 * Get the URI associated with this request. Includes only those query
+		 * parameters provided in the original URI, not those added using
+		 * addQueryParameter(String, String).
+		 * 
+		 * @return URI for this request
+		 */
     public URI getUri();
 
+		/**
+		 * Add a header field to this request; may be ignored in some implementations.
+		 * 
+		 * @param name
+		 * @param value
+		 * @return
+		 */
     public HttpRequest addHeader(String name, String value);
 
-    /**
-     * Add parameter which will be appended to the url query.
-     */
+		/**
+		 * Add a key/value pair to the url query. The value will be encoded 
+		 * according to rfc 3986, using "%20" (rather than "+") for " " (space),
+		 * thus consistent with JavaScript's encodeURIComponent(), not Java's URLEncoder.encode().
+		 * 
+		 * Can be used with either GET or POST.
+		 */
     public HttpRequest addQueryParameter(String name, String value);
 
-    /**
-     * Add parameter to the request form (either urlencoded or multipart).
-     */
+		/**
+		 * Add a key/value multipart/form-data to a PUT or POST request.
+		 */
     public HttpRequest addFormPart(String name, String value);
 
     /**
