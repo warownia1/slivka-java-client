@@ -7,7 +7,7 @@ public enum JobState {
   QUEUED,
   RUNNING,
   COMPLETED,
-  INTERRUPED,
+  INTERRUPTED,
   DELETED,
   FAILED,
   ERROR,
