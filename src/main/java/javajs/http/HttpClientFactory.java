@@ -20,7 +20,7 @@ public class HttpClientFactory {
   
   /** @j2sIgnore */
   static {
-//    defaultClassName = ApacheHttpClient.class.getName();
+    defaultClassName = ApacheHttpClient.class.getName();
   }
  
   public static void setDefaultClassName(String className) {
