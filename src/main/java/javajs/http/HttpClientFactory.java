@@ -12,11 +12,16 @@ import uk.ac.dundee.compbio.slivkaclient.http.impl.ApacheHttpClient;
  *
  *
  * @author hansonr
- *
  */
 public class HttpClientFactory {
  
-  private static String defaultClassName = ApacheHttpClient.class.getName();
+  
+  private static String defaultClassName = "javajs.http.SimpleHttpClient";
+  
+  /** @j2sIgnore */
+  static {
+    defaultClassName = ApacheHttpClient.class.getName();
+  }
  
   public static void setDefaultClassName(String className) {
     if (className != null)

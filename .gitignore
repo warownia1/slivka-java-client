@@ -1,8 +1,15 @@
 bin/
 target/
+site/
+dist/
+.j2s
+build-core.xml
+template.html
 
 .idea/
 *.iml
 .settings/
 .classpath
 
+Main*.java
+test-output/

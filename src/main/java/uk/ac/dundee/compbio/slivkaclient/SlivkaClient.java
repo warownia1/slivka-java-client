@@ -114,7 +114,7 @@ public class SlivkaClient {
 
   public RemoteFile uploadFile(InputStream stream) throws IOException {
     HttpClient.HttpResponse response = getHttpClient()
-        .post(getUrl().resolve("api/files")).addFile("file", stream).execute();
+        .post(getUrl().resolve("api/files")).addFilePart("file", stream).execute();
     try (response) {
       int statusCode = response.getStatusCode();
       if (statusCode == 201) {
