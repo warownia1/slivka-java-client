@@ -301,6 +301,11 @@ public class ApacheHttpClient implements HttpClient {
     public int getStatusCode() {
       return response.getStatusLine().getStatusCode();
     }
+    
+    @Override
+    public String getReasonPhrase() {
+      return response.getStatusLine().getReasonPhrase();
+    }
 
     @Override
     public Map<String, String> getHeaders() {
@@ -324,7 +329,7 @@ public class ApacheHttpClient implements HttpClient {
 
     @Override
     public String getText() throws IOException {
-      return EntityUtils.toString(response.getEntity());
+      return EntityUtils.toString(response.getEntity(), "UTF-8");
     }
 
     @Override

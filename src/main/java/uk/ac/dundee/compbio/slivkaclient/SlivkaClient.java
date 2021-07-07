@@ -1,8 +1,12 @@
 package uk.ac.dundee.compbio.slivkaclient;
 
+import javajs.http.ClientProtocolException;
 import javajs.http.HttpClient;
 import javajs.http.HttpClientFactory;
+import javajs.http.HttpResponseException;
+
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -19,20 +23,31 @@ import static java.lang.String.format;
 
 public class SlivkaClient {
 
-  private URI slivkaURL;
+  public static class Version {
+    public final String server, API;
 
-  private HttpClient httpClient = HttpClientFactory.getClient(null);
+    private Version(String server, String API) {
+      this.server = server;
+      this.API = API;
+    }
 
-  public HttpClient getHttpClient() {
-    return httpClient;
+    @Override
+    public String toString() {
+      return String.format("Version(server=%s, API=%s)", server, API);
+    }
   }
 
-  public void setHttpClient(final HttpClient httpClient) {
+  private URI url;
+  private HttpClient httpClient;
+  private List<SlivkaService> services;
+
+  public SlivkaClient(HttpClient httpClient, URI url) {
     this.httpClient = httpClient;
+    this.url = url;
   }
-  
+
   public SlivkaClient(URI address) {
-    slivkaURL = address;
+    this(HttpClientFactory.getClient(null), address);
   }
 
   public SlivkaClient(String address) {
@@ -45,63 +60,104 @@ public class SlivkaClient {
   }
 
   public SlivkaClient(String host, int port) throws URISyntaxException {
-    this(host, port, null);
+    this(host, port, "/");
   }
 
-  public URI getUrl() {
-    return slivkaURL;
+  public HttpClient getHttpClient() { return httpClient; }
+
+  public void setHttpClient(final HttpClient httpClient) { this.httpClient = httpClient; }
+
+  public URI getUrl() { return url; }
+
+  public URI urlFor(String path) {
+    return url.resolve(path);
   }
 
-  public URI buildURL(String path) {
-    return slivkaURL.resolve(path);
-  }
-
-  public SlivkaVersion getVersion() throws IOException {
+  public Version getVersion() throws IOException {
     HttpClient.HttpResponse response = getHttpClient()
         .get(getUrl().resolve("api/version")).execute();
     try (response) {
       int statusCode = response.getStatusCode();
       if (statusCode == 200) {
-        JSONObject json = new JSONObject(response.getText());
-        return new SlivkaVersion(json.getString("slivka"),
-            json.getString("api"));
-      } else {
-        throw new IOException(format("Unexpected status code: %d", statusCode));
+        try {
+          JSONObject json = new JSONObject(response.getText());
+          return new Version(
+              json.getString("slivkaVersion"),
+              json.getString("APIVersion"));
+        }
+        catch (JSONException e) {
+          throw new ClientProtocolException("Unprocessable server response.", e);
+        }
+      }
+      else {
+        throw new HttpResponseException(
+            response.getStatusCode(), response.getReasonPhrase());
       }
     }
   }
 
   public List<SlivkaService> getServices() throws IOException {
-    HttpClient.HttpResponse response = getHttpClient()
-        .get(buildURL("api/services")).execute();
-    try (response) {
-      int statusCode = response.getStatusCode();
-      if (statusCode == 200) {
-        ArrayList<SlivkaService> services = new ArrayList<>();
-        JSONObject jsonData = new JSONObject(response.getText());
-        JSONArray servicesJson = jsonData.getJSONArray("services");
-        for (int i = 0; i < servicesJson.length(); ++i) {
-          JSONObject section = servicesJson.getJSONObject(i);
-          JSONArray classifiersJsonArray = section.getJSONArray("classifiers");
-          ArrayList<String> classifiers = new ArrayList<>(
-              classifiersJsonArray.length());
-          for (Object obj : classifiersJsonArray) {
-            classifiers.add((String) obj);
-          }
-          services.add(new SlivkaService(this, section.getString("name"),
-              section.getString("label"), section.getString("URI"),
-              classifiers));
-        }
-        return services;
-      } else {
-        throw new IOException(format("Unexpected status code: %d", statusCode));
-      }
+    if (this.services != null) {
+      return this.services;
     }
+    HttpClient.HttpResponse response = getHttpClient()
+        .get(urlFor("api/services")).execute();
+    try (response) {
+      if (response.getStatusCode() != 200) {
+        throw new HttpResponseException(
+            response.getStatusCode(), response.getReasonPhrase());
+      }
+      JSONObject jsonData = new JSONObject(response.getText());
+      ArrayList<SlivkaService> services = new ArrayList<>();
+      JSONArray servicesArray = jsonData.getJSONArray("services");
+      for (int i = 0; i < servicesArray.length(); ++i) {
+        JSONObject srvc = servicesArray.getJSONObject(i);
+        ArrayList<String> classifiers = new ArrayList<>();
+        for (Object obj : srvc.getJSONArray("classifiers")) {
+          classifiers.add(String.valueOf(obj));
+        }
+        ArrayList<Parameter> parameters = new ArrayList<>();
+        JSONArray prmArray = srvc.getJSONArray("parameters");
+        for (int j = 0; j < prmArray.length(); ++j) {
+          parameters.add(Parameter.fromJSON(prmArray.getJSONObject(j)));
+        }
+        ArrayList<SlivkaService.Preset> presets = new ArrayList<>();
+        JSONArray presetsArray = srvc.getJSONArray("presets");
+        for (int j = 0; j < presetsArray.length(); ++j) {
+          JSONObject obj = presetsArray.getJSONObject(j);
+          presets.add(new SlivkaService.Preset(
+              obj.getString("id"), obj.getString("name"),
+              obj.getString("description"), obj.getJSONObject("values").toMap()));
+        }
+        var status = new SlivkaService.Status(
+            srvc.getJSONObject("status").getString("status"),
+            srvc.getJSONObject("status").getString("errorMessage"),
+            srvc.getJSONObject("status").getString("timestamp"));
+        services.add(new SlivkaService(
+            this,
+            urlFor(srvc.getString("@url")),
+            srvc.getString("id"),
+            srvc.getString("name"),
+            srvc.getString("description"),
+            srvc.getString("author"),
+            srvc.getString("version"),
+            srvc.getString("license"),
+            classifiers,
+            parameters,
+            presets,
+            status));
+      }
+      this.services = services;
+    }
+    catch (JSONException e) {
+      throw new ClientProtocolException("Unprocessable server response.", e);
+    }
+    return this.services;
   }
 
-  public SlivkaService getService(String name) throws IOException {
+  public SlivkaService getService(String id) throws Exception {
     for (SlivkaService service : getServices()) {
-      if (name.equals(service.getName())) {
+      if (id.equals(service.getId())) {
         return service;
       }
     }
@@ -118,83 +174,39 @@ public class SlivkaClient {
     try (response) {
       int statusCode = response.getStatusCode();
       if (statusCode == 201) {
-        JSONObject json = new JSONObject(response.getText());
-        return new RemoteFile(this, json.getString("uuid"),
-            json.getString("title"), json.getString("label"),
-            json.optString("mimetype"), json.getString("contentURI"));
-      } else {
-        throw new IOException(format("Unexpected status code: %d", statusCode));
+        JSONObject obj = new JSONObject(response.getText());
+        return RemoteFile.fromJSON(this, obj);
+      }
+      else {
+        throw new HttpResponseException(
+            response.getStatusCode(), response.getReasonPhrase());
       }
     }
+    catch (JSONException e) {
+      throw new ClientProtocolException("Unprocessable server response.", e);
+    }
   }
-
-  @Deprecated
-  public RemoteFile uploadFile(File input, String mimeType) throws IOException {
-    return uploadFile(input);
-  }
-
-  @Deprecated
-  public RemoteFile uploadFile(File input, String title, String mimeType)
-      throws IOException {
-    return uploadFile(input);
-  }
-
-  @Deprecated
-  public RemoteFile uploadFile(InputStream input, String title, String mimeType)
-      throws IOException {
-    return uploadFile(input);
-  }
-
-  public JobState getJobState(String uuid) throws IOException {
-    URI url = getUrl().resolve(format("api/tasks/%s", uuid));
+  
+  public Job getJob(String id) throws IOException {
+    URI url = getUrl().resolve(format("api/jobs/%s", id));
     HttpClient.HttpResponse response = getHttpClient().get(url).execute();
     try (response) {
-      int statusCode = response.getStatusCode();
-      if (statusCode == 200) {
-        JSONObject json = new JSONObject(response.getText());
-        return JobState.valueOf(json.getString("status").toUpperCase());
-      } else {
-        throw new IOException(format("Unexpected status code: %s", statusCode));
+      if (response.getStatusCode() == 200) {
+        JSONObject obj = new JSONObject(response.getText());
+        return Job.fromJSON(this, obj);
+      }
+      else {
+        throw new HttpResponseException(
+            response.getStatusCode(), response.getReasonPhrase());
       }
     }
-  }
-
-  public List<RemoteFile> getJobResults(String uuid) throws IOException {
-    URI url = buildURL(format("api/tasks/%s/files", uuid));
-    try (HttpClient.HttpResponse response = getHttpClient().get(url).execute()) {
-      int statusCode = response.getStatusCode();
-      if (statusCode == 200) {
-        List<RemoteFile> files = new ArrayList<>();
-        JSONObject json = new JSONObject(response.getText());
-        for (Object obj : json.getJSONArray("files")) {
-          JSONObject fileJSON = (JSONObject) obj;
-          files.add(new RemoteFile(this, fileJSON.getString("uuid"),
-              fileJSON.getString("title"), fileJSON.getString("label"),
-              fileJSON.optString("mimetype"),
-              fileJSON.getString("contentURI")));
-        }
-        return files;
-      } else if (statusCode == 404) {
-        return Collections.emptyList();
-      } else {
-        throw new IOException(format("Unexpected status code: %d", statusCode));
-      }
-    }
-  }
-
-  public void cancelJob(String uuid) throws IOException {
-    URI url = getUrl().resolve(format("api/tasks/%s", uuid));
-    HttpClient.HttpResponse response = getHttpClient().delete(url).execute();
-    try (response) {
-      int statusCode = response.getStatusCode();
-      if (statusCode != 200) {
-        throw new IOException(format("Unexpected status code: %s", statusCode));
-      }
+    catch (JSONException e) {
+      throw new ClientProtocolException("Unprocessable server response.", e);
     }
   }
 
   @Override
   public String toString() {
-    return format("SlivkaClient(%s)", slivkaURL.toString());
+    return format("SlivkaClient(%s)", url.toString());
   }
 }
